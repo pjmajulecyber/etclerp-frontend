@@ -1,0 +1,118 @@
+/* src/pages/admin/settings/EmailAccess.css */
+
+.email-page {
+    padding: 24px;
+    width: 900px;
+  }
+  
+  /* HEADER */
+  .email-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #2563eb;
+  }
+  
+  .email-header p {
+    color: #6b7280;
+    margin-top: 4px;
+  }
+  
+  /* GRID */
+  .email-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  /* CARD */
+  .email-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    text-align: center;
+    transition: 0.3s;
+  }
+  
+  .email-card:hover {
+    transform: translateY(-4px);
+  }
+  
+  /* COLORS */
+  .email-card.yahoo {
+    border-top: 4px solid #720e9e;
+  }
+  
+  .email-card.cpanel {
+    border-top: 4px solid #f97316;
+  }
+  
+  /* ICON */
+  .email-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  
+  /* TEXT */
+  .email-address {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 16px;
+  }
+  
+  /* BUTTON */
+  .email-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  
+  .email-btn:hover {
+    background: #1d4ed8;
+  }
+  
+  /* INFO */
+  .email-info {
+    margin-top: 30px;
+    background: #f9fafb;
+    padding: 16px;
+    border-radius: 10px;
+  }
+  
+  .email-info h4 {
+    margin-bottom: 10px;
+  }
+  
+  .email-info ul {
+    padding-left: 18px;
+    color: #374151;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

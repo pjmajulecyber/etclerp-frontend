@@ -1,0 +1,438 @@
+/* PAGE container: width 90% and centered */
+.doc-page {
+    width: 90%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 24px;
+    margin-bottom: 40px;
+    padding-top: 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
+    padding-left: 24px;
+    box-sizing: border-box;
+    font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1f2d3d;
+    background: #ffffff;
+  }
+  
+  /* Header: title area that must remain above filters */
+  .doc-header {
+    width: 100%;
+    display: block;               /* ensure vertical stacking: heading above filters */
+    box-sizing: border-box;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+  }
+  
+  /* left side (title + subtitle) -- placed above filter controls */
+  .doc-left {
+    display: block;
+    margin-bottom: 12px;
+  }
+  
+  .doc-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: #0f1724;
+    line-height: 1.1;
+  }
+  
+  .doc-sub {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+  
+  /* actions row containing search, filter, upload buttons
+     placed below the header title (keeps heading above filters) */
+  .doc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 8px;
+  }
+  
+  /* left cluster inside actions (search + selects) */
+  .doc-filter-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+  }
+  
+  /* search input */
+  .doc-search {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e6e9ee;
+    min-width: 260px;
+    font-size: 15px;
+    color: #111827;
+    background: #ffffff;
+    outline: none;
+  }
+  
+  /* selects in header */
+  .doc-select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e6e9ee;
+    font-size: 14px;
+    color: #111827;
+    background: #fff;
+    min-height: 40px;
+  }
+  
+  /* right cluster: upload button group */
+  .doc-upload-btns {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  /* base button */
+  .btn {
+    font-size: 14px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    padding-left: 14px;
+    padding-right: 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: #f3f4f6;
+    color: #111827;
+    box-sizing: border-box;
+    transition: all 120ms ease;
+  }
+  
+  /* primary */
+  .btn-primary {
+    background: #0f71ff;
+    color: white;
+    border-color: #0f71ff;
+    box-shadow: 0 6px 18px rgba(15,113,255,0.08);
+  }
+  
+  /* ghost / subtle */
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid #e6e9ee;
+    color: #0f1724;
+  }
+  
+  /* small variant (kept for row actions) */
+  .btn.small {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  
+  /* ghost-like textual */
+  .btn.ghost {
+    background: transparent;
+    border: none;
+    color: #0f71ff;
+  }
+  
+  /* CARD: wrapper for table */
+  .doc-card {
+    margin-top: 18px;
+    background: #ffffff;
+    border: 1px solid #eef2f6;
+    border-radius: 12px;
+    padding: 16px;
+    box-sizing: border-box;
+    box-shadow: 0 6px 20px rgba(16,24,40,0.03);
+  }
+  
+  /* card header */
+  .doc-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .doc-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #102a43;
+  }
+  
+  .doc-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  /* rows selector */
+  .rows-label {
+    margin-right: 6px;
+    color: #6b7280;
+    font-size: 13px;
+  }
+  
+  .rows-select {
+    padding: 8px 10px;
+    border: 1px solid #e6e9ee;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 14px;
+  }
+  
+  /* Table scroll wrapper */
+  .table-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+    margin-top: 4px;
+  }
+  
+  /* Table base */
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 940px;
+    table-layout: auto;
+    background: #fff;
+  }
+  
+  /* table header row */
+  .doc-table thead tr {
+    background: #fafbfc;
+  }
+  
+  /* table cells */
+  .doc-table th,
+  .doc-table td {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-bottom: 1px solid #eef2f6;
+    text-align: left;
+    font-size: 14px;
+    color: #24303f;
+    vertical-align: middle;
+  }
+  
+  /* header cell styles */
+  .doc-table th {
+    font-weight: 700;
+    color: #4b5563;
+    font-size: 13px;
+    letter-spacing: 0.1px;
+  }
+  
+  /* monospace code column */
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+    font-size: 13px;
+    color: #0f1724;
+  }
+  
+  /* empty state row */
+  .empty {
+    text-align: center;
+    padding: 28px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+  
+  /* badge for status */
+  .doc-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    box-sizing: border-box;
+  }
+  
+  .doc-badge.valid {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid rgba(6,95,70,0.06);
+  }
+  
+  .doc-badge.expired {
+    background: #fff1f2;
+    color: #9f1239;
+    border: 1px solid rgba(159,18,57,0.06);
+  }
+  
+  /* row action container */
+  .doc-row-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  
+  /* pagination block */
+  .doc-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    margin-top: 8px;
+  }
+  
+  .doc-page-info {
+    color: #6b7280;
+    font-size: 13px;
+  }
+  
+  .doc-page-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  /* Modal overlay */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 11, 13, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  /* Modal panel */
+  .modal {
+    width: 720px;
+    max-width: 94%;
+    background: #ffffff;
+    height: 80%;
+    border-radius: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+    box-shadow: 0 12px 40px rgba(16,24,40,0.12);
+  }
+  
+  .modal h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f1724;
+  }
+  
+  .modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .modal-label {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    color: #111827;
+  }
+  
+  .modal-label input,
+  .modal-label select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e6e9ee;
+    margin-top: 6px;
+    font-size: 14px;
+    background: #fff;
+  }
+  
+  /* modal footer actions */
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  
+  /* utility text colors and muted */
+  .muted {
+    color: #6b7280;
+    font-size: 13px;
+  }
+  
+  /* responsive: keep heading above filters on smaller screens too */
+  @media (max-width: 1000px) {
+    .doc-page {
+      width: 94%;
+      padding: 18px;
+    }
+  
+    .doc-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+  
+    .doc-filter-row {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 8px;
+    }
+  
+    .doc-upload-btns {
+      justify-content: flex-start;
+      width: 100%;
+    }
+  
+    .doc-card {
+      padding: 12px;
+    }
+  
+    .modal {
+      width: 96%;
+      padding: 14px;
+      height: auto;
+    }
+  }
+  
+  /* very small screens: stack table horizontally scroll */
+  @media (max-width: 640px) {
+    .doc-search {
+      min-width: 120px;
+      width: 100%;
+    }
+  
+    .doc-filter-row {
+      gap: 6px;
+      align-items: stretch;
+      flex-direction: column;
+    }
+  
+    .doc-actions {
+      gap: 10px;
+    }
+  
+    .doc-card {
+      padding: 10px;
+    }
+  
+    .doc-table th,
+    .doc-table td {
+      padding: 10px 8px;
+      font-size: 13px;
+    }
+  
+    .modal-label input,
+    .modal-label select {
+      font-size: 13px;
+      padding: 9px 10px;
+    }
+  }

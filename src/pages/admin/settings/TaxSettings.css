@@ -1,0 +1,179 @@
+.tax-page {
+    padding: 30px;
+    background: #f5f7fb;
+    min-height: 100vh;
+    width: 900px;
+  }
+  
+  .tax-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  }
+  
+  /* HEADER */
+  .tax-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #2563eb;
+  }
+  
+  .add-btn {
+    background: #16a34a;
+    color: white;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  
+  /* TABLE */
+  .tax-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .tax-table th, .tax-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+  
+  .tax-table th {
+    background: #f1f5f9;
+  }
+  
+  /* STATUS */
+  .active {
+    color: #16a34a;
+    font-weight: bold;
+  }
+  
+  .inactive {
+    color: #dc2626;
+    font-weight: bold;
+  }
+  
+  /* MODAL */
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 400px;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: #2563eb;
+  }
+  
+  input, select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  .checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* BUTTON */
+  .save-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  
+
+/* ================= ACTION BUTTONS ================= */
+
+.tax-table td button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px;
+    margin-right: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* EDIT BUTTON */
+  .tax-table td button:first-child {
+    color: #2563eb; /* blue */
+  }
+  
+  .tax-table td button:first-child:hover {
+    background: rgba(37, 99, 235, 0.1);
+    color: #1d4ed8;
+    transform: scale(1.1);
+  }
+  
+  /* DELETE BUTTON */
+  .tax-table td button:last-child {
+    color: #dc2626; /* red */
+  }
+  
+  .tax-table td button:last-child:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
+    transform: scale(1.1);
+  }
+  
+  /* ICON SIZE FIX */
+  .tax-table td button svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    display: inline-block;
+  }
+  
+  /* ================= OPTIONAL: HOVER ROW EFFECT ================= */
+  .tax-table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+  
+  /* ================= STATUS BADGES ================= */
+  .active {
+    background: #dcfce7;
+    color: #16a34a;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .inactive {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }

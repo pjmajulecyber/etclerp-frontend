@@ -1,0 +1,284 @@
+/* ================= CONTAINER ================= */
+
+.account-container {
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+    width: 900px;
+  }
+  
+  /* ================= HEADER ================= */
+  
+  .account-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+  
+  .account-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  
+  /* ================= BUTTONS ================= */
+  
+  .btn-primary {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s ease;
+  }
+  
+  .btn-primary:hover {
+    background: #1e40af;
+  }
+  
+  .btn-save {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .btn-save:hover {
+    background: #15803d;
+  }
+  
+  /* ================= ADD FORM ================= */
+  
+  .account-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .account-form input,
+  .account-form select {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    min-width: 160px;
+    outline: none;
+    transition: 0.2s ease;
+  }
+  
+  .account-form input:focus,
+  .account-form select:focus {
+    border-color: #2563eb;
+  }
+  
+  /* ================= SECTION ================= */
+  
+  .account-section {
+    margin-bottom: 35px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-left: 10px;
+    border-left: 4px solid #2563eb;
+    color: #0f172a;
+  }
+  
+  /* ================= TABLE ================= */
+  
+  .account-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .account-table thead {
+    background: #f1f5f9;
+  }
+  
+  .account-table th,
+  .account-table td {
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
+  }
+  
+  .account-table th {
+    font-weight: 600;
+    color: #334155;
+  }
+  
+  .account-table tbody tr {
+    border-top: 1px solid #e2e8f0;
+    transition: background 0.2s ease;
+  }
+  
+  .account-table tbody tr:hover {
+    background: #f8fafc;
+  }
+  
+  /* ================= ACTION ICONS ================= */
+  
+  .icon-btn {
+    cursor: pointer;
+    font-size: 16px;
+    color: #64748b;
+    margin-right: 8px;
+    transition: 0.2s ease;
+  }
+  
+  .icon-btn:hover {
+    color: #2563eb;
+  }
+  
+  .icon-btn.danger:hover {
+    color: #dc2626;
+  }
+  
+  /* ================= LOCK ICON ================= */
+  
+  .account-table svg {
+    vertical-align: middle;
+  }
+  
+  .account-table td svg {
+    font-size: 16px;
+    color: #64748b;
+  }
+  
+  /* ================= RESPONSIVE ================= */
+  
+  @media (max-width: 768px) {
+    .account-form {
+      flex-direction: column;
+    }
+  
+    .account-table th,
+    .account-table td {
+      font-size: 12px;
+      padding: 8px;
+    }
+  
+    .btn-primary {
+      font-size: 12px;
+    }
+  }
+  
+  
+  
+  /* ================= ACTION COLUMN ================= */
+
+.account-table td:last-child {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  /* ================= ACTION BUTTON BASE ================= */
+  
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #475569;
+  }
+  
+  /* EDIT BUTTON */
+  
+  .acicon-btn {
+    color: #2563eb;
+  }
+  
+  .acicon-btn:hover {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #1d4ed8;
+  }
+  
+  /* DELETE BUTTON */
+  
+  .acdelete {
+    color: #dc2626;
+  }
+  
+  .acdelete:hover {
+    background: #fef2f2;
+    border-color: #dc2626;
+    color: #b91c1c;
+  }
+  
+  /* LOCK ICON STYLE */
+  
+  .account-table td svg {
+    font-size: 16px;
+  }
+  
+
+  /* Add to AccountCode.css if you want the color cues to be more visible */
+.account-table tbody tr[style*="#16a34a"] {
+  font-weight: 600;
+}
+
+.account-table tbody tr[style*="#dc2626"] {
+  font-weight: 600;
+}
+
+.acicon-btn,
+.acdelete {
+  cursor: pointer;
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+}
+
+/* INCOME (GREEN) */
+.acc-income td {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+/* EXPENSE (RED) */
+.acc-expense td {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* ICON FIX */
+.acicon-btn svg,
+.acdelete svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+/* HOVER */
+.account-table tr:hover {
+  background: rgba(0,0,0,0.03);
+}

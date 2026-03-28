@@ -1,0 +1,280 @@
+/* ================= TOPBAR ================= */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 270px; /* must match sidebar width exactly */
+    right: 0;
+    height: 70px;
+  
+    background: #68abfc;
+    border-bottom: 1px solid #e5e7eb;
+  
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  
+    padding: 0 25px;
+    overflow: visible;
+  
+    z-index: 5000;/* 🔥 VERY IMPORTANT */
+  }
+  
+  /* ================= LEFT ================= */
+  .topbar-left h1 {
+    font-size: 20px;
+    font-weight: 600;
+   
+    color: #1856dd;
+    margin: 0;
+  }
+  
+  /* ================= RIGHT SECTION ================= */
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    position: relative;
+    z-index: 5100;
+  }
+  
+  /* ================= SEARCH ================= */
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: #f3f4f6;
+    border-radius: 8px;
+    padding: 6px 12px;
+    width: 240px;
+  }
+  
+  .search-box svg {
+    color: #131415;
+    margin-right: 8px;
+    font-size: 16px;
+  }
+  
+  .search-box input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    width: 100%;
+    color: #111827;
+  }
+  
+  /* ================= ICON BUTTONS ================= */
+  .icon-btn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: none;
+    background: #0959f9;
+    cursor: pointer;
+  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    font-size: 18px;
+    color: #0a4fbe;
+  
+    transition: all 0.2s ease;
+  }
+  
+  .icon-btn:hover {
+    background: #e5e7eb;
+    color: #111827;
+  }
+  
+  /* ================= NOTIFICATION DOT ================= */
+  .notification-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+  }
+  
+  /* ================= DROPDOWN WRAPPER ================= */
+.dropdown-wrapper {
+  position: relative;
+}
+
+/* ================= DROPDOWN MENU ================= */
+.dropdown-menu {
+  position: absolute;
+  top: 110%;
+  right: 0;
+
+  min-width: 220px;
+  padding: 8px 0;
+
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+
+  z-index: 99999; /* 🔥 HIGHER THAN DASHBOARD */
+}
+
+/* ================= DROPDOWN ITEMS ================= */
+.dropdown-menu p {
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  transition: background 0.15s ease;
+}
+
+/* icon alignment */
+.dropdown-menu p svg {
+  font-size: 16px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* hover state */
+.dropdown-menu p:hover {
+  background: #f3f4f6;
+}
+  
+  /* ================= NOTIFICATION MENU ================= */
+  .notification-menu {
+    width: 260px;
+  }
+  
+  .notification-menu h4 {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 16px;
+    margin: 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+  }
+
+   
+  .notification-item {
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .notification-item span {
+    font-size: 14px;
+    color: #111827;
+  }
+  
+  .notification-item small {
+    font-size: 12px;
+    color: #6b7280;
+  }
+  
+  /* ================= BRANCH SELECT ================= */
+  .branch-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  
+    background: #f3f4f6;
+    padding: 6px 12px;
+    border-radius: 8px;
+  
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827;
+    cursor: pointer;
+  
+    transition: background 0.2s ease;
+  }
+  
+  .branch-select:hover {
+    background: #e5e7eb;
+  }
+  
+  /* ================= PROFILE ================= */
+  .profile-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  
+    background: #f3f4f6;
+    padding: 6px 12px;
+    border-radius: 8px;
+  
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .profile-box:hover {
+    background: #e5e7eb;
+  }
+  
+  .profile-box span {
+    font-size: 13px;
+    color: #111827;
+  }
+  
+  /* ================= AVATAR ================= */
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+  
+    background: #2563eb;
+    color: white;
+  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  /* ================= ICON SIZES ================= */
+  .icon {
+    font-size: 18px;
+  }
+  
+  .icon-small {
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .tphd{
+    margin-left: 30px;
+  }
+
+
+  /* each dropdown item */
+.dropdown-menu p,
+.dropdown-menu .dropdown-item{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  padding: 10px 16px;
+
+  font-size: 14px;
+  color: #7a5fbd;
+  cursor: pointer;
+
+  background: transparent;
+  border: none;
+}

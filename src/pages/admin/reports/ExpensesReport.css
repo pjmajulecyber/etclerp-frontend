@@ -1,0 +1,174 @@
+/* Expenses Report - namespaced with exprep- to avoid clash */
+.exprep-page {
+    padding: 18px;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #0f172a;
+    background: #f8fafc;
+    min-height: 100%;
+    width: 950px;
+    box-sizing: border-box;
+  }
+  
+  .exprep-headerRow {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  
+  .exprep-heading h2 { margin: 0; font-size:20px; }
+  .exprep-sub { color:#475569; font-size:13px; margin-top:4px; }
+  
+  .exprep-actions { display:flex; gap:8px; align-items:center; }
+  .exprep-btn {
+    padding:8px 12px;
+    border-radius:8px;
+    border:1px solid transparent;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .exprep-btn-csv {
+    background:#ffffff;
+    color:#0f172a;
+    border:1px solid #e6eef8;
+  }
+  .exprep-btn-pdf {
+    background:#0f72ff;
+    color:#fff;
+    border:1px solid rgba(0,0,0,0.04);
+  }
+  
+  /* Filters */
+  .exprep-filters {
+    display:grid;
+    grid-template-columns: 1fr 100px 90px 90px 90px 90px 90px 90px;
+    gap:10px;
+    align-items:center;
+    margin:12px 0;
+  }
+  @media (max-width:1100px) {
+    .exprep-filters { grid-template-columns: repeat(2,1fr); }
+  }
+  .exprep-input, .exprep-select, .exprep-input-date {
+    width:100%;
+    padding:8px 10px;
+    color: #0f172a;
+    border-radius:8px;
+    border:1px solid #e6eef8;
+    background:#fff;
+    box-sizing:border-box;
+  }
+  
+  /* Summary cards */
+  .exprep-summarygrid {
+    display:flex;
+    gap:10px;
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  .exprep-card {
+    background:#fff;
+    border:1px solid #e6eef8;
+    padding:12px 14px;
+    border-radius:8px;
+    min-width:180px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  }
+  .exprep-card-label { font-size:12px; color:#6b7280; margin-bottom:6px; }
+  .exprep-card-value { font-weight:700; font-size:16px; }
+  
+  .exprep-card.approved { border-left:4px solid #16a34a; }
+  .exprep-card.rejected { border-left:4px solid #dc2626; }
+  .exprep-card.pending { border-left:4px solid #f59e0b; }
+  
+  /* Table */
+  .exprep-tableWrap {
+    background:#fff;
+    border:1px solid #e6eef8;
+    border-radius:8px;
+    overflow:auto;
+  }
+  .exprep-table {
+    width:100%;
+    border-collapse:collapse;
+  }
+  .exprep-table th, .exprep-table td {
+    padding:10px;
+    border-bottom:1px solid #f3f4f6;
+    text-align:left;
+    vertical-align:middle;
+    font-size:13px;
+  }
+  .exprep-table thead th {
+    background:#f8fafc;
+    font-weight:700;
+    color:#374151;
+  }
+  .exprep-num { text-align:right; font-variant-numeric: tabular-nums; }
+  
+  /* badges */
+  .exprep-badge {
+    padding:4px 8px;
+    border-radius:12px;
+    font-size:12px;
+    font-weight:600;
+    display:inline-block;
+  }
+  .exprep-badge.approved { background:#dcfce7; color:#166534; }
+  .exprep-badge.rejected { background:#fee2e2; color:#991b1b; }
+  .exprep-badge.pending { background:#fff7ed; color:#92400e; }
+  
+  /* Empty */
+  .exprep-empty { text-align:center; padding:24px; color:#6b7280; }
+  
+  /* Totals below table */
+  .exprep-tableTotals {
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:12px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .exprep-tableTotals-block {
+    background:#fff;
+    border:1px solid #e6eef8;
+    padding:10px 12px;
+    border-radius:8px;
+    min-width:260px;
+  }
+  .exprep-tableTotals-title { font-size:12px; color:#6b7280; margin-bottom:6px; }
+  .exprep-tableTotals-values { display:flex; gap:12px; flex-wrap:wrap; font-weight:700; }
+  
+  /* Pagination */
+  .exprep-pagination {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:12px;
+    gap:12px;
+  }
+  .exprep-pagerLeft { display:flex; gap:8px; align-items:center; }
+  .exprep-pagerBtn {
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid #e6eef8;
+    background:#fff;
+    cursor:pointer;
+  }
+  .exprep-pagerRight { color:#475569; font-size:13px; }
+  
+  /* small responsive polish */
+  @media (max-width:640px) {
+    .exprep-table thead th:nth-child(4),
+    .exprep-table td:nth-child(4),
+    .exprep-table thead th:nth-child(5),
+    .exprep-table td:nth-child(5),
+    .exprep-table thead th:nth-child(6),
+    .exprep-table td:nth-child(6) {
+      display:none;
+    }
+  }
+  

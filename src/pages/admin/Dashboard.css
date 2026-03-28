@@ -1,0 +1,459 @@
+/* ================= DASHBOARD BASE ================= */
+
+.dashboard {
+    background: #f6f8f7;
+    min-height: 100vh;
+    z-index: 1;
+    width: 980px;
+    overflow: visible;
+  
+    
+  }
+  .dashboard-wrapper {
+    background: #d7eaff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08)
+   
+  }
+   
+  .dashboardCard-wrapper {
+    background: #f5f8fc;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+    margin-bottom:10px;
+    height: 120px;
+  }
+
+  .dashboardHeader-wrapper {
+    background: linear-gradient(135deg, #4151ff, #dd0285);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+    margin-bottom:10px;
+    height: 50px;
+  }
+
+
+  
+  /* ================= HEADER ================= */
+  
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+  
+  .dashboard-header h2 {
+    font-size: 20px;
+    margin: 0;
+    color: #ffffff;
+  }
+  
+  .dashboard-header p {
+    font-size: 13px;
+    color: #ffffff;
+    margin-top: 4px;
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* ================= DASHBOARD DROPDOWN (RENAMED) ================= */
+
+.dashboard-dropdown {
+    position: relative;
+  }
+  
+  .dashboard-dropdown-btn {
+    background: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  
+  /* 🔥 IMPORTANT: No more collision with Topbar */
+  
+  .dashboard-dropdown-menu {
+    position: absolute;
+    top: 28px;
+    left: 0;
+    background: rgb(248, 247, 247);
+    font-size: 12px;
+    color: #0f172a;
+    border-radius: 8px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    padding: 6px 0;
+    min-width: 120px;
+    z-index: 50;
+    display: none;
+  }
+  
+  .dashboard-dropdown:hover .dashboard-dropdown-menu {
+    display: block;
+  }
+  
+  .dashboard-dropdown-menu div {
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  
+  .dashboard-dropdown-menu div:hover {
+    background: #fbfbfb;
+    color: #fff;
+  }
+  
+  
+  /* ================= BUTTONS ================= */
+  
+  .year-btn,
+  .export-btn,
+  .action-btn {
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #0f172a;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  
+  .year-btn {
+    background: #ffffff;
+  }
+  
+  .export-btn,
+  .action-btn {
+    background: #03c142;
+    color: white;
+  }
+  
+  .small-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .view-btn {
+    background: #2563eb;
+    color: white;
+  }
+  
+  .approve {
+    background: #16a34a;
+    color: white;
+    gap: 14px;
+  }
+  
+  .decline {
+    background: #fb6767;
+    color: white;
+    gap: 14px;
+  }
+  
+  .action-cell {
+    display: flex;
+    gap: 6px;
+  }
+  
+  /* ================= SUMMARY CARDS ================= */
+  
+    /* SUMMARY GRID */
+.dssummary-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px; /* reduced gap */
+    margin-bottom: 24px;
+    
+    
+  }
+  
+  /* SUMMARY CARD (COMPACT) */
+  .dssummary-card {
+    border-radius: 14px;
+    padding: 14px 16px;  /* reduced padding */
+    height: 95px;        /* smaller height */
+    box-shadow: #8993ed;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: 0.2s ease;
+   
+  }
+  
+  /* TITLE */
+  .dssummary-card h4 {
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    margin: 0;
+  }
+  
+  /* VALUE ROW */
+  .dssummary-value-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;   /* reduced gap */
+  }
+  
+  /* CURRENCY TAG */
+  .dscurrency-tag {
+    background: #dcfce7;
+    color: #166534;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 5px;
+    letter-spacing: 0.4px;
+  }
+  
+  /* VALUE */
+  .dssummary-value {
+    font-size: 16px;  /* reduced from 18 */
+    font-weight: 700;
+    margin: 2px 0;    /* tighter spacing */
+    color: #0f172a;
+  }
+  
+  /* TREND BADGE */
+.trend {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+  }
+  
+  .trend.up {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .trend.down {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  
+  /* ================= TABLE LAYOUT ================= */
+  
+  .table-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  
+  /* ================= CARD ================= */
+  
+  .card {
+    background: white;
+    border-top: 4px solid  #4151ff;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .card h3 {
+    font-size: 14px;
+    margin: 0;
+    color: #0f172a;
+  }
+  
+  /* ================= TABLE ================= */
+  
+  .table-scroll {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  
+  .table-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .table-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th {
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: left;
+    padding-bottom: 8px;
+  }
+  
+  td {
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+  }
+  
+  /* ================= STATUS BADGES ================= */
+  
+  .status {
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  
+  .status.good {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .status.low {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  
+  .status.critical {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  
+  /* ================= WASTE OIL ================= */
+  
+  .stock-in {
+    color: #16a34a;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .stock-out {
+    color: #dc2626;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* ================= DOCUMENT SECTION ================= */
+
+.document-card {
+    margin-top: 30px;
+  }
+  
+  /* FILTER BAR */
+  .document-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .document-filters select {
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid #c8dcf7;
+    font-size: 12px;
+    background: #f8fafc;
+    color: #334155;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .document-filters select:hover {
+    background: #f1f5f9;
+  }
+  
+  .document-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #dcdde1;
+    padding: 7px 12px;
+    border-radius: 8px;
+    flex: 1;
+    max-width: 320px;
+    border: 1px solid #b7d4f9;
+    
+  }
+  
+  .document-search input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 12px;
+    width: 100%;
+    color: #0f172a;
+  }
+  
+  /* ================= DOCUMENT STATUS BADGES ================= */
+  
+  .status.valid {
+    background: #dcfce7;
+    color: #166534;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  
+  .status.expired {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  
+  /* ================= DOCUMENT TABLE POLISH ================= */
+  
+  .document-card table tbody tr:hover {
+    background: #f8fafc;
+    transition: 0.2s ease;
+  }
+  
+  .document-card table td {
+    padding: 10px 0;
+  }
+  
+  /* ================= ACTION BUTTON POLISH ================= */
+  
+  .document-card .view-btn {
+    background: #2563eb;
+    color: white;
+  }
+  
+  .document-card .approve {
+    background: #0f5f4f;
+    color: white;
+  }

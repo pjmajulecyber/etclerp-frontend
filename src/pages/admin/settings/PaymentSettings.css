@@ -1,0 +1,104 @@
+.pay-page {
+    padding: 30px;
+    background: #f5f7fb;
+    min-height: 100vh;
+    width: 900px;
+  }
+  
+  .pay-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  }
+  
+  /* HEADER */
+  .pay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .add-btn {
+    background: #16a34a;
+    color: white;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  
+  /* TABLE */
+  .pay-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .pay-table th, .pay-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+  
+  .pay-table th {
+    background: #f1f5f9;
+  }
+  
+  /* STATUS */
+  .active {
+    color: #16a34a;
+    font-weight: bold;
+  }
+  
+  .inactive {
+    color: #dc2626;
+    font-weight: bold;
+  }
+  
+  /* MODAL */
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 420px;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  input, select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  .checkbox {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  .save-btn {
+    background: #2563eb;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }

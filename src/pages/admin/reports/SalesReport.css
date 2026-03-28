@@ -1,0 +1,124 @@
+
+/* src/pages/admin/sales/modules/SalesReport.css */
+
+/* Page container */
+.sales-report-page {
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #b5b7b9;
+    border-radius: 10px;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #0f172a;
+    width: 900px;
+   
+
+  }
+  
+  /* header */
+  .report-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .report-header h2 { margin:0; font-size:20px; font-weight:700; }
+  .report-actions { display:flex; gap:8px; }
+  
+  /* buttons */
+  .btn {
+    border:1px solid #cbd5e1;
+    background:#fff;
+    padding:8px 10px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+
+  .srpwrapper{
+    background: #e7f3ff;
+    border-radius: 10px;
+    width: 100%;
+    height: 250px;
+  }
+  .btn-outline { background:#fff; color:#0f172a; }
+  .srp-primary { background:#0f72ff; color:#fff; border: none;margin-left: 80px; height: 30px; padding-bottom: 30px; }
+  .btn-warning { background:#f59e0b; color:#fff; border: none; }
+  .btn-ghost { background:transparent; border:1px solid #cbd5e1; }
+  
+  /* controls grid */
+  .report-controls { margin-bottom:14px; }
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:10px;
+    align-items:end;
+  }
+  .filter-col { display:flex; flex-direction:column; gap:6px; grid-column: span 2; }
+  .filter-col.wide { grid-column: span 4; }
+  .filter-col.actions { grid-column: span 2; display:flex; align-items:center; justify-content:flex-end; }
+  .filter-col label { font-size:12px; color:#334155; font-weight:600; }
+  .filter-col input, .filter-col select {
+    padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; background:#f6f3f3; font-size:13px; color: #0f172a;
+  }
+  
+  /* small filter buttons */
+  .filter-buttons { display:flex; gap:8px; }
+  
+  /* summaries */
+  .report-summaries {
+    display:flex;
+    gap:34px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  .card {
+    background: #ffffff;
+    border:1px solid #b5b7b9;
+    padding:12px 16px;
+    border-radius:8px;
+    min-width:160px;
+    box-shadow: 0 1px 2px rgba(2,6,23,0.04);
+  }
+  .card-title { font-size:12px; color:#475569; font-weight:700; }
+  .card-value { font-size:18px; font-weight:800; margin-top:6px; }
+  
+  /* grouped mini list */
+  .group-list { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .group-item { background:#f8fafc; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; min-width:120px; display:flex; justify-content:space-between; align-items:center; }
+  .g-key { font-weight:700; color:#0f172a; }
+  .g-val { font-weight:700; color:#0f72ff; }
+  
+  /* table */
+  .report-table { background:#fff; border-radius:8px; border:1px solid #e6eef8; padding:0; overflow-x:auto; margin-top: 30px; }
+  .report-table table { width:100%; border-collapse:collapse; min-width: 1100px; }
+  .report-table th, .report-table td { padding:10px 12px; border-bottom:1px solid #f1f5f9; text-align:left; font-size:13px; color:#0f172a; vertical-align:middle; }
+  .report-table thead th {
+    background:#f1f5f9; font-weight:700; cursor:pointer; user-select:none;
+  }
+  .report-table tbody tr:hover { background:#fbfdff; }
+  .status-tag { padding:4px 8px; border-radius:18px; font-weight:700; font-size:12px; display:inline-block; }
+  .status-tag.paid { background:#dcfce7; color:#166534; }
+  .status-tag.unpaid { background:#fee2e2; color:#7f1d1d; }
+  .status-tag.partial { background:#fff7ed; color:#92400e; }
+  
+  /* row actions */
+  .row-actions { display:flex; gap:6px; }
+  .row-actions .btn { padding:6px 8px; font-size:13px; }
+  
+  /* footer / pagination */
+  .report-footer { display:flex; justify-content:space-between; align-items:center; margin-top:12px; gap:12px; flex-wrap:wrap; }
+  .pagination { display:flex; gap:8px; align-items:center; }
+  .footer-actions { display:flex; gap:12px; align-items:center; }
+  
+  /* responsiveness */
+  @media (max-width: 980px) {
+    .filters-grid { grid-template-columns: repeat(6, 1fr); }
+    .filter-col.wide { grid-column: span 6; }
+    .filter-col { grid-column: span 3; }
+    .report-summaries { flex-direction:column; }
+  }
+  
+  /* small tweaks */
+  .report-table th:nth-child(1), .report-table td:nth-child(1) { width:120px; }
+  .report-table th:nth-child(2), .report-table td:nth-child(2) { width:100px; }
+  .report-table th:nth-child(5), .report-table td:nth-child(5) { text-align:right; }
+  .report-table td { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

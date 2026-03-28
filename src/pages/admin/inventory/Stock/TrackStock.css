@@ -1,0 +1,172 @@
+/* pages/admin/inventory/TrackStock.css */
+:root{
+    --bg: #d4ebfa;
+    --card: #fff;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --radius: 12px;
+    --shadow-1: 0 12px 30px rgba(11,18,30,0.06);
+    --text: #071027;
+  }
+  
+  /* page */
+  .trackstock-page{
+    padding: 20px;
+    background: var(--bg);
+    border-radius: 6px;
+    min-height: 100vh;
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--text);
+    box-sizing: border-box;
+  }
+  
+  /* header block */
+  .trackstock-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .trackstock-titleBlock h1{ margin:0; font-size:20px; }
+  .trackstock-titleBlock .muted{ color:var(--muted); margin-top:6px; font-size:13px; }
+  
+  /* actions on right */
+  .trackstock-actions{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .btn{
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight:600;
+  }
+  .btn-primary{ background: var(--accent); color: #fff; }
+  .btn-default{ background: #10b981; color: #ffffff; }
+  .btn-outline{ background: transparent; border:1px solid rgba(0,0,0,0.06); color: var(--muted); }
+  .btn.ghost{ background: transparent; color: var(--text); border:1px dashed rgba(0,0,0,0.06); }
+  
+  /* controls row */
+  .trackstock-controls{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:center;
+    padding:12px;
+    background: linear-gradient(180deg,#fff,#fbfdff);
+    border-radius: 10px;
+    border: 1px solid #e6eef7;
+    box-shadow: var(--shadow-1);
+    margin-bottom:12px;
+  }
+  .control-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .control-left label{ font-size:13px; color:var(--muted); margin-right:4px; }
+  .control-left select,
+  .control-left input{
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid #e6eef7;
+    background:#fff;
+    font-size:14px;
+    color: #000;
+  }
+  .control-left input[type="date"]{ padding:7px 10px; }
+  
+  /* right controls */
+
+  .control-right-select
+  { background: #fff;
+    
+    align-items:center; 
+    border-radius: 6px;
+    gap:8px;
+    font-size:14px;
+    color : #232121;
+    }
+    
+  .Stcontrol-right{ 
+    display:flex; 
+    align-items:center; 
+    gap:8px;
+    background: #fff;
+    font-size:14px;
+    color : #181717;
+    }
+  
+  /* table wrap / printable area */
+  .trackstock-tableWrap{
+    background: var(--card);
+    border-radius: 10px;
+    border:1px solid #c0ddff;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(11,18,30,0.04);
+  }
+  
+  /* add a scrollable body with sticky header */
+  .table-scroll{
+    max-height: 440px;
+    overflow:auto;
+  }
+  
+  /* table */
+  .trackstock-table{
+    width:100%;
+    border-collapse:collapse;
+    min-width: 900px;
+    font-size:14px;
+  }
+  .trackstock-table thead th{
+    position: sticky;
+    top: 0;
+    background: linear-gradient(180deg,#f8fbff,#eef6ff);
+    padding:12px;
+    text-align:left;
+    border-bottom:1px solid #e6eef7;
+    z-index: 2;
+    font-weight:700;
+    color:var(--text);
+  }
+  .trackstock-table tbody td{
+    padding:12px;
+    border-bottom:1px solid #f3f7fb;
+    vertical-align: middle;
+    color:var(--text);
+  }
+  .trackstock-table tfoot td{
+    padding:10px;
+    background:#fbfdff;
+    border-top:2px solid #e6eef7;
+    font-weight:700;
+  }
+  
+  /* small helpers */
+  .text-right{ text-align:right; }
+  .empty{ text-align:center; color:var(--muted); padding:18px 0; }
+  
+  /* pagination area */
+  .trackstock-pagination{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    gap:12px;
+    margin-top:12px;
+  }
+  .page-controls { display:flex; gap:8px; align-items:center; }
+  
+  /* responsive */
+  @media (max-width: 980px){
+    .trackstock-controls{ flex-direction:column; align-items:flex-start; }
+    .table-scroll{ max-height:320px; }
+    .trackstock-header{ flex-direction:column; align-items:flex-start; gap:8px; }
+    .trackstock-actions{ flex-wrap:wrap; }
+    .trackstock-table{ min-width:700px; }
+  }  

@@ -1,0 +1,150 @@
+/* src/pages/admin/sales/modules/PaymentsReport.css */
+
+/* Page wrapper */
+.pr-page {
+  padding: 18px;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #111827;
+}
+
+/* Header */
+.pr-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+.pr-header h2 { margin: 0; font-size:20px; }
+.pr-actions { display:flex; gap:8px; align-items:center; }
+
+/* Buttons (page-local) */
+.pr-btn {
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid #cbd5e1;
+  background:#fff;
+  cursor:pointer;
+  font-size:14px;
+}
+.pr-btn-primary { background:#0f72ff; color:#fff; border:none; }
+.pr-btn-outline { background:#d0c9c9; font-size: 12;color: #0f172a; }
+.pr-btn-ghost { background: #1f46a1; border:1px dashed #919294; }
+
+/* Filters grid */
+.pr-filters-grid {
+  display:grid; 
+  grid-template-columns: repeat(5, 1fr);
+  gap:10px;
+  margin-bottom:12px;
+}
+@media (max-width:980px) {
+  .pr-filters-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.pr-filters-grid label { font-size:12px; font-weight:600; color:#374151; display:block; margin-bottom:6px; }
+.pr-filters-grid input, .pr-filters-grid select {
+  width:100%;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid #e6eef8;
+  background:#fff;
+  box-sizing:border-box;
+}
+.pr-search-col { grid-column: span 1; }
+@media (max-width:980px) { .pr-search-col { grid-column: span 2; } }
+
+/* Summary cards */
+.pr-summary-cards {
+  display:flex;
+  gap:12px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.pr-card {
+  background:#fff;
+  border:1px solid #e6eef8;
+  padding:12px 16px;
+  border-radius:8px;
+  min-width:160px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+}
+.pr-card-title { font-size:12px; color:#6b7280; margin-bottom:6px; }
+.pr-card-value { font-weight:700; font-size:16px; }
+
+/* Add payment form */
+.pr-add-payment-form {
+  background:#fff;
+  border:1px solid #e6eef8;
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:12px;
+}
+.pr-row { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+.pr-col { display:flex; flex-direction:column; }
+.pr-col-full { grid-column: span 4; display:flex; flex-direction:column; }
+.pr-actions-row { display:flex; gap:8px; justify-content:flex-end; padding-top:6px; }
+@media (max-width:980px) {
+  .pr-row { grid-template-columns: 1fr; }
+  .pr-col-full { grid-column: 1; }
+}
+.pr-add-payment-form label { font-size:12px; font-weight:600; margin-bottom:6px; color:#374151; }
+.pr-add-payment-form input, .pr-add-payment-form select { padding:8px; border-radius:8px; border:1px solid #e6eef8; }
+
+/* Report table */
+.pr-report-table {
+  background:#fff;
+  border:1px solid #e6eef8;
+  border-radius:8px;
+  overflow:auto;
+  margin-bottom:12px;
+}
+.pr-report-table table {
+  width:100%;
+  border-collapse:collapse;
+}
+.pr-report-table th, .pr-report-table td {
+  padding:10px;
+  border-bottom:1px solid #f3f4f6;
+  text-align:left;
+  vertical-align:top;
+}
+.pr-report-table thead th {
+  background:#f8fafc;
+  font-weight:700;
+  color:#374151;
+}
+
+/* Payments list inside table */
+.pr-payments-list { display:flex; flex-direction:column; gap:6px; max-width:260px; }
+.pr-payment-row { display:flex; gap:8px; align-items:center; font-size:12px; color:#111827; }
+.pr-p-date { color:#6b7280; min-width:70px; }
+.pr-p-amt { font-weight:700; color:#0f172a; min-width:110px; text-align:right; }
+.pr-p-method { font-size:12px; color:#374151; padding-left:6px; }
+
+/* paid / outstanding styles (page-local) */
+.pr-paid { color:#16a34a; font-weight:700; }
+.pr-outstanding { color:#dc2626; font-weight:700; }
+.Total {color: #0f172a; font-weight: 200;}
+
+/* row actions (vertical on small screens) */
+.pr-row-actions { display:flex; gap:6px; flex-direction:row; align-items:center; }
+@media (max-width:520px) { .pr-row-actions { flex-direction:column; } }
+.pr-row-actions .pr-btn { padding:6px 8px; font-size:12px; }
+
+/* pagination */
+.pr-pagination {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:10px;
+  gap:12px;
+}
+.pr-pager-controls { display:flex; gap:8px; align-items:center; }
+.pr-pagination select { padding:6px 8px; border-radius:6px; border:1px solid #e6eef8; }
+.pr-small-muted { color:#6b7280; font-size:13px; }
+
+/* pager button small */
+.pr-pager-btn { padding:6px 8px; border-radius:6px; border:1px solid #e6eef8; background:#fff; cursor:pointer; }
+
+/* small helpers */
+.pr-card, .pr-report-table, .pr-add-payment-form { box-shadow: 0 6px 18px rgba(12,18,28,0.03); }

@@ -1,0 +1,448 @@
+:root{
+  --page-width: 794px;       /* A4-like width */
+  --outer-border: 6px;      /* thick outer border */
+  --inner-border: 2px;
+  --black: #000;
+  --pale-blue: #dbe7ef;
+  --header-blue: #cfe0ea;
+  --muted: #666;
+  --serif: "Times New Roman", Times, serif;
+}
+
+/* Page + actions (keeps your UI) */
+.invoice-page{
+  padding: 18px 20px 40px;
+  background: #f3f6ff;
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: var(--serif);
+  color: #111;
+}
+.invoice-actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  gap:12px;
+}
+.invoice-actions .btn {
+  padding:8px 12px;
+  border-radius:6px;
+  border:1px solid #cbd5e1;
+  cursor:pointer;
+  background:#fff;
+}
+.invoice-actions .btn-print { background:#10b981; color:#fff; border:none; }
+.invoice-actions .btn-pdf { background:#0f72ff; color:#fff; border:none; }
+
+/* Print area wrapper centered */
+.delivery-note-print-area{
+  width: 100%;
+  display:flex;
+  justify-content:center;
+  box-sizing:border-box;
+}
+
+/* Outer page/card with big border */
+.delivery-note-outer{
+  width: var(--page-width);
+  box-sizing: border-box;
+  padding: 10px;
+}
+.delivery-note-inner{
+  border: var(--outer-border) solid var(--black);
+ font-size: medium;
+  box-sizing: border-box;
+  background: #fff;
+  font-family: var(--serif);
+  color: var(--black);
+  position: relative;
+  overflow: visible;
+}
+
+/* Header: left logo + right pale-blue block */
+.dn-header{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-right: 5px;
+  margin-bottom: 8px;
+  align-items:flex-start;
+}
+/* ===== Replace existing .dn-header / .dn-left / .dn-right rules with these ===== */
+
+.dn-header {
+  /* make header a vertical stack: logo+company on top, delivery-note box below */
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* top row: logo + company name remain together and float left to free space */
+.dn-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  /* float left so the right block can sit on a new line and be aligned right */
+  float: left;
+  min-width: 220px;
+}
+
+/* ensure floated area doesn't collapse the next block */
+.dn-header:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* delivery note box now sits below the company block and aligns to the right */
+.dn-right {
+  /* full-row block that sits below the floated left block */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end; /* keep internal text right-aligned */
+  width: 56%;
+  min-width: 260px;
+  margin-left: auto;     /* pushes box to the right */
+  margin-top: 8px;
+  background: linear-gradient(180deg, var(--pale-blue), #e7f0f6);
+  border: 1px solid rgba(0,0,0,0.6);
+  padding: 8px 12px;
+  box-sizing: border-box;
+  height: 120px;
+  overflow: hidden;
+}
+
+/* keep the DELIVERY NOTE title scaling safely inside its new block */
+.dn-title {
+  font-size: clamp(26px, 4.6vw, 44px);
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: var(--black);
+}
+
+/* keep company name single-line and prevent it from pushing the right block */
+.company-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 420px;
+}
+/* left part - logo and company name */
+.dn-left{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  min-width: 220px;
+}
+.dn-logo{
+  width:120px;
+  height:auto;
+  object-fit:contain;
+  margin-top:4px;
+}
+/* COMPANY NAME: single line, no wrap */
+.company-name{
+  font-size:16px;
+  color:#153b8b;
+  font-weight:700;
+  margin-top:14px;
+  letter-spacing:0.3px;
+  white-space: nowrap;       /* keep single line */
+  overflow: visible;
+  text-overflow: ellipsis;
+      /* avoid pushing the right box */
+  display: inline-block;
+}
+
+/* small helper class if you want to force absolutely no truncation:
+   .company-name.single-line { white-space: nowrap; } */
+
+/* right block: large DELIVERY NOTE with pale blue background */
+/* Use flexible sizing and clamp title to avoid overflow off the page */
+.dn-right{
+  flex: 1 1 56%;
+  min-width: 200px;
+  background: linear-gradient(180deg, var(--pale-blue), #e7f0f6);
+  border: 1px solid rgba(0,0,0,0.6);
+  padding: 8px 12px;
+  box-sizing: border-box;
+  text-align: right;
+  height: 120px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-end;
+  overflow: hidden;
+}
+
+/* title will scale between 26px and 44px depending on available width */
+.dn-title{
+  font-size: clamp(26px, 4.6vw, 24px);
+  font-weight:700;
+  line-height: 1;
+  margin-bottom:6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: var(--black);
+}
+.dn-contact{
+  font-size:11px;
+  line-height:1.1;
+}
+.dn-contact .muted{ font-style:italic; font-size:10px; margin-top:6px; }
+
+/* meta row under header */
+.dn-meta{
+  display:flex;
+  justify-content:space-between;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+.meta-left, .meta-right{
+  width:48%;
+  font-size:13px;
+}
+.meta-left strong, .meta-right strong{ font-weight:700; }
+.meta-right{ text-align:right; }
+
+/* Customer and driver boxes */
+.dn-customer-driver{
+  display:flex;
+  gap:12px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+.customer-box, .driver-box{
+  border: var(--inner-border) solid var(--black);
+  padding: 6px;
+  box-sizing: border-box;
+  background: #fff;
+}
+.customer-box{ width: 66%; }
+.driver-box{ width: 34%; }
+
+/* box header style */
+.box-header{
+  background: var(--header-blue);
+  border: 1px solid var(--black);
+  padding: 6px 8px;
+  font-weight:700;
+  margin-bottom: 6px;
+  font-size:13px;
+}
+.box-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-bottom:6px;
+}
+.label{ width:140px; font-weight:700; font-size:12px; }
+.value{ padding:6px 8px; border:1px solid var(--black); font-size:12px; min-height:22px; background:#fff; flex:1; }
+
+/* driver fields */
+.driver-value{ padding:6px 8px; border:1px solid var(--black); font-weight:700; margin-bottom:6px; text-align:left; background:#fff; }
+.driver-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.dlabel{ width:90px; font-weight:700; }
+.dvalue{ padding:6px 8px; border:1px solid var(--black); min-width:120px; }
+
+/* TABLE layout: left vertical column + table */
+.dn-table-area{
+  display:flex;
+  gap:0;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  align-items:flex-start;
+}
+
+/* left vertical blank column that appears in the scan */
+.table-side{
+  width: 110px;  /* adjusts left blank strip width */
+  box-sizing: border-box;
+  border-top: 4px solid var(--black);
+  border-left: 4px solid var(--black);
+  border-bottom: 4px solid var(--black);
+  background: #fff;
+}
+
+/* table wrapper — table takes remaining width */
+.dn-table-wrap{
+  flex:1;
+  box-sizing:border-box;
+}
+
+/* main table — thick surrounding border like scanned note */
+.dn-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout: fixed;
+  font-size:13px;
+  border: 4px solid var(--black);
+  margin:0;
+  background-clip: padding-box;
+  color: var(--black);
+}
+
+/* table header — pale blue header band with inner black separators */
+.dn-table thead tr:first-child th{
+  background: var(--header-blue);
+  border:2px solid var(--black);
+  padding:10px;
+  font-weight:700;
+  text-align:center;
+}
+.dn-table thead tr.subhead th{
+  background: var(--header-blue);
+  border-left:2px solid var(--black);
+  border-right:2px solid var(--black);
+  border-bottom:2px solid var(--black);
+  padding:6px;
+  text-align:center;
+  font-weight:700;
+}
+
+/* columns widths */
+.dn-table thead th.left-col { width: 22%; }
+.dn-table thead th.notes-col { width: 18%; }
+
+/* body cells use inner thin horizontal lines like the scan */
+.dn-table tbody td {
+  padding:8px 6px;
+  vertical-align: middle;
+  border-left:2px solid var(--black);
+  border-right:2px solid var(--black);
+  border-bottom:2px solid var(--black);
+  background: #fff;
+  color: var(--black) !important;
+  position: relative;
+  z-index: 2;
+}
+.room { padding-left:12px; font-weight:700; text-align:left; }
+.litres { text-align:center; }
+.seal { text-align:center; }
+.notes { }
+
+/* the large blank area below the item rows (matches scan proportions) */
+.blank-area-row td.big-blank{
+  height: 220px; /* adjust to visually match the scan */
+  padding: 0;
+  border-left:2px solid var(--black);
+  border-right:2px solid var(--black);
+  border-bottom:2px solid var(--black);
+  background:#fff;
+}
+.blank-area-row td.vertical-notes{
+  width:18%;
+  border-left:2px solid var(--black);
+  border-right:2px solid var(--black);
+  border-bottom:2px solid var(--black);
+  background:#fff;
+}
+
+/* -------------------------
+   Updated signature/footer area
+   ------------------------- */
+.dn-footer-updated {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 18px;
+  align-items: flex-start;
+}
+
+/* left column */
+.footer-left {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.footer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.footer-label {
+  width: 80px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.footer-line {
+  flex: 1;
+  border-bottom: 1px solid #111;
+  padding-bottom: 2px;
+  height: 18px;
+  display: inline-block;
+}
+
+/* specific adjustments for left */
+.name-line { height: 18px; }
+.receipt-caption { margin-left: 0; font-size: 12px; color: #333; }
+
+/* stamp box left */
+.stamp-box-left { margin-top: 6px; }
+.stamp-placeholder {
+  width: 140px;
+  height: 70px;
+  border: 2px solid var(--black);
+  background: #fff;
+}
+
+/* right column */
+.footer-right {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.signature-row, .date-row, .deliver-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.signature-line, .date-line, .deliver-line {
+  flex: 1;
+  border-bottom: 1px solid #111;
+  height: 18px;
+  display: inline-block;
+}
+
+/* Deliver stamp label smaller */
+.deliver-label { width: 110px; font-weight: 700; }
+
+/* small print muted */
+.muted{ color: var(--muted); font-size:11px; }
+
+/* print rules */
+@media print {
+  body * { visibility: visible; }
+  .invoice-actions { display:none !important; }
+  .invoice-page { background: #fff; padding: 6mm; }
+  .delivery-note-print-area { display:block; }
+  .delivery-note-outer { width: 100%; padding: 0; border: none; box-shadow:none; }
+  @page { size: A4; margin: 6mm; }
+  .dn-right { -webkit-print-color-adjust: exact; }
+}
+
+/* responsive fallback */
+@media (max-width: 1000px) {
+  .delivery-note-outer{ width: 100%; padding: 12px; }
+  .dn-header{ flex-direction: column; gap:12px; align-items:stretch; }
+  .table-side{ display:none; } /* hide left blank column on narrow screens */
+  .footer-left, .footer-right { width: 100%; }
+  .dn-footer-updated { flex-direction: column; }
+}
+
+
+
+
+
+
+
+

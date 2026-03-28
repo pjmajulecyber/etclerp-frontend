@@ -1,0 +1,528 @@
+/* ================= PAGE BASE ================= */
+
+.salesList-page {
+    background: #d6e6fe;
+    border-radius: 10px;
+    font-family: "Inter", sans-serif;
+    color: #1e293b;
+    padding: 28px;
+    overflow:visible;
+  }
+  
+  /* ================= HEADER ================= */
+  
+  .salesList-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+  
+  .salesList-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+  }
+  
+  .salesList-header p {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #ffffff;
+  }
+  
+  .salesList-primaryBtn {
+    background: linear-gradient(135deg, #0804fa, #2003f8);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .salesList-primaryBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
+  }
+  
+  /* ================= FILTER BAR ================= */
+  
+  .salesList-summaryFilter {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 25px;
+    
+  }
+  
+  .salesListCard-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    height:28px;
+    border: 1px solid #d6e8ff;
+    background: rgb(247, 247, 247);
+    font-size: 13px;
+    color: #060707;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  .salesListCardMonth-select{
+    padding: 8px 12px;
+    border-radius: 8px;
+    height:28px;
+    border: 1px solid #d6e8ff;
+    background: rgb(247, 247, 247);
+    font-size: 13px;
+    color: #060707;
+    cursor: pointer;
+    width: 80px;
+    transition: 0.2s ease;
+  }
+  
+  .salesList-select:hover {
+    border-color: #2563eb;
+  }
+  
+  .salesList-dateRange {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .salesList-dateRange input {
+    padding: 6px 10px;
+    background-color: #c7cbff;
+    font-size: 13px;
+    color: #070b11;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    height: 25px;
+  }
+  
+  /* ================= SUMMARY CARDS ================= */
+  
+  .SalesListSum-wrapper {
+    background: linear-gradient(135deg, #4151ff, #dd0285);
+    border-radius: 20px;
+    padding: 25px;
+    padding-bottom: 120px;
+    border-top: 20px linear-gradient(135deg,#dd0285, #4151ff);
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+    margin-bottom:70px;
+    height: 120px;
+  }
+  
+  .salesList-summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .salesList-card {
+    border-radius: 16px;
+    padding: 16px;  /* reduced padding */
+    height: 75px;
+    color: white;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.06);
+    transition: 0.3s ease;
+  }
+  
+  .salesList-card:hover {
+    transform: translateY(-4px);
+  }
+  
+  .salesList-card p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+  
+  .salesList-card h3 {
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  
+  /* CARD COLORS */
+  
+  .salesList-card.blue {
+    background: linear-gradient(135deg, #11a301, #2d7a32);
+  }
+  
+  .salesList-card.orange {
+    background: linear-gradient(135deg, #460bf5, #208cff);
+  }
+  
+  .salesList-card.green {
+    background: linear-gradient(135deg, #b66ff9, #9914ff);
+  }
+  
+  .salesList-card.red {
+    background: linear-gradient(135deg, #f63b5d, #af1e4e);
+  }
+  
+  /* ================= TABS ================= */
+  
+  .SalesListTabs-Wrapper {
+    background: #cbc8c9;
+  }
+  
+  .salesList-tabs {
+    display: flex;
+    gap: 30px;
+    border-bottom: 2px solid #cbc8c9;
+    margin-bottom: 25px;
+  }
+  
+  .salesList-tab {
+    padding: 12px 4px;
+    font-size: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    color: #0a70fd;
+  }
+  .salesList-tab.active {
+    font-weight: 700;
+    color: #111827;
+  }
+  
+  .salesList-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #2563eb;
+    border-radius: 4px;
+  }
+  .salesList-tab.active {
+    color: #2563eb;
+    font-weight:700;
+  }
+  
+  .salesList-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: #2563eb;
+    border-radius: 4px;
+  }
+  
+  /* ================= TABLE CARD ================= */
+  
+  .salesList-tableCard {
+    background: rgb(239, 238, 241);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+  }
+  
+  /* ================= TABLE FILTER HEADER ================= */
+  
+  .salesList-tableFilters {
+    background: #f8fafc;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+   
+  
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    align-items: center;
+  }
+  
+  .salesList-input,
+  .salesList-select {
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid #93beff;
+    background: #ffffff;
+    font-size: 14px;
+    color: #070b11;
+    transition: 0.2s ease;
+  }
+  
+  .salesList-input::placeholder {
+    color: #141414;
+  }
+  
+  /* AC Code */
+  .salesList-tableFilters input:nth-child(1) {
+    width: 80px;
+    height: 32px;
+  }
+  
+  /* Invoice Number */
+  .salesList-tableFilters input:nth-child(2) {
+    width: 90px;
+    height: 32px;
+  }
+  
+  /* Customer Name */
+  .salesList-tableFilters input:nth-child(3) {
+    width: 110px;
+    height: 32px;
+  }
+  
+  /* Year Select */
+  .salesList-tableFilters select {
+    width: 110px;   /* Short like ERP */
+    height: 32px;
+  }
+  
+  /* Search Box */
+  .salesList-searchBox {
+    width: 220px;
+    height: 32px;
+  }
+  
+  .salesList-input:focus,
+  .salesList-select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  
+  
+  .salesList-searchBox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #fefbfb;
+    transition: 0.2s ease;
+  }
+  
+  .salesList-searchBox svg {
+    color: #060707;
+    font-size: 16px;
+  }
+  
+  .salesList-searchBox input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    background: transparent;
+    color: #08090a;
+  }
+  
+  .salesList-searchBox:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  
+  
+  /* =====================================================
+     SCROLLABLE TABLE AREA (INNER SURFACE)
+  ===================================================== */
+  
+  .salesList-tableWrapper {
+    background: #ffffff;
+    margin-top: 20px;
+    border-radius: 16px;
+  
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  
+    max-height: 520px;
+    overflow-y: auto;
+  }
+  
+  
+  /* =====================================================
+     TABLE
+  ===================================================== */
+  
+  .salesList-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .salesList-table th {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .salesList-table td {
+    padding: 10px;
+    font-size: 13px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+  }
+  
+  .salesList-table tr:hover {
+    background: #f1f5f9;
+  }
+  
+  
+  /* =====================================================
+     STATUS BADGES
+  ===================================================== */
+  
+  .salesList-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .salesList-status.paid {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .salesList-status.unpaid {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  
+  .salesList-status.partial {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  
+  
+  /* =====================================================
+     ACTION ICONS
+  ===================================================== */
+  
+  .salesList-actions {
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    color: #64748b;
+  }
+  
+  .salesList-actions svg:hover {
+    color: #2563eb;
+  }
+  
+  
+  /* =====================================================
+     PAGINATION
+  ===================================================== */
+  
+  .salesList-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 18px;
+  }
+  
+  .salesList-pageButtons {
+    display: flex;
+    gap: 6px;
+  }
+  
+  .salesList-pageButtons button {
+    min-width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    color: #08090a;
+  }
+  
+  .salesList-pageButtons button.active {
+    background: #79a2fa;
+    color: white;
+    border-color: #2563eb;
+    height: 30px;
+  }
+  
+  .salesList-pageButtons button:hover:not(.active) {
+    background: #f1f5f9;
+  }
+  
+  .salesList-pageButtons button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  
+  /* ================= TOTAL ROW ================= */
+  
+  .salesList-totalRow {
+    background: #f1f5f9;
+    font-weight: 600;
+    border-top: 2px solid #cbd5e1;
+  }
+  
+  .salesList-totalRow td {
+    padding: 12px;
+    font-size: 14px;
+  }
+  
+  /* Align numbers right */
+  .text-right {
+    text-align: right;
+  }
+  
+  /* ================= EXPORT BUTTONS ================= */
+  
+  .salesList-exportButtons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  
+  .salesList-btn {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  
+  /* PDF Button */
+  .salesList-btn-pdf {
+    background: #dc2626;
+    color: #ffffff;
+  }
+  
+  .salesList-btn-pdf:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+  }
+  
+  /* Excel Button */
+  .salesList-btn-excel {
+    background: #16a34a;
+    color: #ffffff;
+  }
+  
+  .salesList-btn-excel:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+  }

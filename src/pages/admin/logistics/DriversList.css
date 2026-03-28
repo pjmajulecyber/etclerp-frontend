@@ -1,0 +1,155 @@
+/* ===== PAGE ===== */
+.driversPage {
+    padding: 24px;
+    border-radius: 10px;
+    background: #dde7ff;
+    min-height: 100vh;
+    width: 900px;
+  }
+  
+  /* ===== HEADER ===== */
+  .driversHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+   
+  }
+  
+  .driversHeader h2 {
+    margin: 0;
+    font-size: 22px;
+    color:#111827 ;
+  }
+  
+  .driversHeader p {
+    margin: 5px 0 0;
+    color: #898f9a;
+    font-size: 14px;
+  }
+  
+  .addbtnPrimary {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  
+  /* ===== SUMMARY CARDS ===== */
+  .driversSummary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+  }
+  
+  .summaryCard {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  }
+  
+  .summaryCard h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+  }
+  
+  .summaryCard span {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 8px;
+    display: block;
+  }
+  
+  
+  /* ===== FILTER ===== */
+  .driversFilters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+  
+  .filterLeft {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .filterLeft input,
+  .filterLeft select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #101010;
+    border: 1px solid #d1d5db;
+    background: #fbfbfb;
+  }
+  
+  .btnExport {
+    background: #02a725;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  /* ===== TABLE ===== */
+  .driversTableWrapper {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  }
+  
+  .driversTable {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .driversTable th {
+    background: #f3f4f6;
+    padding: 14px;
+    text-align: left;
+    font-size: 14px;
+  }
+  
+  .driversTable td {
+    padding: 14px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 14px;
+  }
+  
+  .driversTable tr:hover {
+    background: #f9fafb;
+  }
+  
+  /* ===== ACTION BUTTONS ===== */
+  .actionBtn {
+    padding: 6px 10px;
+    margin-right: 6px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  .actionBtn.view {
+    background: #2563eb;
+    color: white;
+  }
+  
+  .actionBtn.edit {
+    background: #f59e0b;
+    color: white;
+  }
+  
+  .noData {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+  }

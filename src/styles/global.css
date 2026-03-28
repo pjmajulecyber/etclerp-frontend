@@ -1,0 +1,185 @@
+:root {
+  --sidebar-width: 270px;
+  --sidebar-collapsed-width: 72px;
+  --topbar-height: 70px;
+  --transition-fast: 220ms;
+  --transition-smooth: 320ms;
+}
+
+/* existing base reset kept (you can merge if already present) */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #f6f8f7;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* admin layout wrapper */
+.admin-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* sidebar default width (the actual sidebar element exists in your Sidebar component) */
+.admin-layout .sidebar {
+  width: var(--sidebar-width);
+  transition: width var(--transition-smooth) ease;
+  box-sizing: border-box;
+}
+
+/* collapsed state on the root wrapper — no code changes required in Sidebar.jsx */
+.admin-layout.collapsed .sidebar {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* topbar positioning adjusts with the sidebar width */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  height: var(--topbar-height);
+  transition: left var(--transition-fast) ease;
+  z-index: 5000;
+}
+
+/* when collapsed, move topbar left */
+.admin-layout.collapsed .topbar {
+  left: var(--sidebar-collapsed-width);
+}
+
+/* main content area (margin-left follows sidebar width) */
+.admin-content {
+  margin-left: var(--sidebar-width);
+  margin-top: var(--topbar-height);
+  height: calc(100vh - var(--topbar-height));
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  box-sizing: border-box;
+  padding-right: 80px;
+  transition: margin-left var(--transition-fast) ease;
+}
+
+/* collapsed main content */
+.admin-layout.collapsed .admin-content {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* toggle button (placed visually near the topbar left edge, does not touch your Topbar component) */
+.sidebar-toggle {
+  position: fixed;
+  top: 14px;
+  left: calc(var(--sidebar-width) + 12px);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 0;
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 4px 12px rgba(2,6,23,0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 6000;
+  transition: left var(--transition-fast) ease, transform var(--transition-fast) ease, background var(--transition-fast);
+  padding: 6px;
+}
+
+/* icon color */
+.sidebar-toggle svg { color: #0f172a; }
+
+/* slide toggle left when collapsed */
+.admin-layout.collapsed .sidebar-toggle {
+  left: calc(var(--sidebar-collapsed-width) + 12px);
+}
+
+/* slight hover */
+.sidebar-toggle:hover { transform: translateY(-2px); }
+
+/* when collapsed show small accent */
+.sidebar-toggle.is-collapsed { background: rgba(15,23,42,0.98); }
+.sidebar-toggle.is-collapsed svg { color: #fff; }
+
+/* ===== collapse visual adjustments for generic sidebar internals =====
+   These rules intentionally target many common label/selectors inside sidebar.
+   They hide text labels, menu titles, and company details while keeping icons visible.
+   If your Sidebar uses different specific classnames for labels, add them similarly.
+*/
+.admin-layout .sidebar .logo-box { width: 40px; height: 40px; transition: all var(--transition-fast); }
+.admin-layout .sidebar .sidebar-brand h2 { transition: opacity var(--transition-fast) ease, transform var(--transition-fast); }
+.admin-layout .sidebar .sidebar-brand small { transition: opacity var(--transition-fast) ease; }
+
+/* collapsed: hide textual labels, keep icons */
+.admin-layout.collapsed .sidebar .sidebar-brand h2,
+.admin-layout.collapsed .sidebar .sidebar-brand small,
+.admin-layout.collapsed .sidebar .active-company,
+.admin-layout.collapsed .sidebar .menu-title,
+.admin-layout.collapsed .sidebar .sidebar-footer,
+.admin-layout.collapsed .sidebar .sidebar-link > .link-text,
+.admin-layout.collapsed .sidebar .sidebar-link > span.label,
+.admin-layout.collapsed .sidebar .sidebar-section .sidebar-dropdown-btn > span.text {
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* keep icon spacing centered when collapsed */
+.admin-layout.collapsed .sidebar .sidebar-link {
+  justify-content: center;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+/* submenu collapsed: hide */
+.admin-layout.collapsed .sidebar-submenu {
+  display: none;
+}
+
+/* small tweak so brand icon stays centered */
+.admin-layout.collapsed .sidebar-brand {
+  justify-content: center;
+}
+
+/* ensure links still look fine */
+.sidebar a,
+.sidebar .sidebar-link {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* accessibility: ensure focus outline still visible */
+.sidebar a:focus, .sidebar button:focus, .sidebar-toggle:focus {
+  outline: 3px solid rgba(59,130,246,0.18);
+  outline-offset: 2px;
+}
+
+/* preserve scroll area and visual stability */
+.sidebar {
+  overflow: hidden;
+}
+.sidebar .sidebar-content {
+  overflow: auto;
+}
+
+/* responsive: on mobile keep original behaviour (sidebar overlay handled by your existing rules) */
+@media (max-width: 992px) {
+  .sidebar-toggle {
+    left: 14px;
+    top: 14px;
+  }
+  .topbar { left: 0; }
+  .admin-content { margin-left: 0; }
+}
+
+

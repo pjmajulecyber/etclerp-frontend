@@ -1,0 +1,476 @@
+
+/* AddProforma.css
+   Matches AddSales sizing and visual style exactly (modal height 92vh).
+   Selectors include both .addSales-* and .addProforma-* so your UI stays identical.
+*/
+
+/* overlay / modal - keep measurements identical */
+.addSales-overlay,
+.addProforma-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 11000;
+}
+
+.addSales-modal,
+.addProforma-modal {
+  background: linear-gradient(135deg, #9fa7fe, #cbf9d1);
+  width: 95%;
+  max-width: 900px;
+  height: 92vh; /* EXACT: same as original AddSales modal */
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.addSales-content,
+.addProforma-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* header */
+.addSales-header,
+.addProforma-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px;
+  border-top: 6px solid #b2b9fc;
+  border-bottom: 1px solid #eef3f8;
+  background: linear-gradient(135deg, #4151ff, #dd0285);
+  flex-shrink: 0;
+}
+
+.addSales-header h2,
+.addProforma-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.addSales-sub,
+.addProforma-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.addSales-headerRight,
+.addProforma-headerRight {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.addSales-close,
+.addProforma-close {
+  border-radius: 10px;
+  border: none;
+  background: #f3f6fb;
+  color: #0b1220;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 6px 10px;
+}
+
+/* top row grid (match measurement exactly) */
+.erp-row.top-row {
+  display: grid;
+  grid-template-columns: 1fr 200px 130px 130px;
+  gap: 9px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 1060px) {
+  .erp-row.top-row { grid-template-columns: 1fr 160px 140px; }
+}
+@media (max-width: 760px) {
+  .erp-row.top-row { grid-template-columns: 1fr; gap:10px; }
+}
+
+/* fields */
+.erp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.erp-field label {
+  font-size: 13px;
+  color: #344154;
+  font-weight: 600;
+}
+
+.erp-field input,
+.erp-field select,
+.erp-row input,
+.erp-row select {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #a1cbf3;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #071027;
+  background: #f5f5fc;
+  transition: box-shadow .12s, border-color .12s;
+}
+
+.erp-field input::placeholder { color: #9aa6b3; }
+
+.erp-field input:focus,
+.erp-field select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 8px 26px rgba(37,99,235,0.08);
+}
+
+.erp-selected {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #0b1220;
+  background: #c7c9cc;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+/* dropdown */
+.erp-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #fffefe;
+  border-radius: 10px;
+  box-shadow: 0 18px 40px rgba(6, 11, 20, 0.12);
+  border: 1px solid #5230fa;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 13000;
+}
+
+.erp-dropdown-item {
+  display:flex;
+  gap:10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  align-items: center;
+}
+
+.erp-dropdown-item .erp-dd-code {
+  font-weight:700;
+  color:#090d16;
+  width:88px;
+}
+
+.erp-dropdown-item .erp-dd-name {
+  color:#334155;
+}
+
+.erp-dropdown-item:hover { background:#85bbf1; }
+.erp-dropdown-item.none { color:#9e908b; }
+
+/* product row */
+.erp-product-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.erp-product-field,
+.erp-charge-field {
+  display:flex;
+  flex-direction:column;
+  font-size: 12px;
+  color: #090d16;
+  font-weight: 400;
+  gap:8px;
+}
+
+.erp-product-controls {
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.erp-product-controls select {
+  flex: 1;
+  width: 50px;
+  height: 45px;
+  border-radius: 10px;
+  border: 1px solid #dbe7f2;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #090d16;
+  background:#fffefe;
+}
+
+.erp-add-btn {
+  height: 35px;
+  border-radius: 10px;
+  border: none;
+  background:#2563eb;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor:pointer;
+  box-shadow: 0 10px 28px rgba(37,99,235,0.12);
+}
+
+.erp-add-btn:hover { transform: translateY(-1px); }
+
+/* table wrapper */
+.erp-table-wrapper {
+  background: linear-gradient(180deg,#fbfdff,#ffffff);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 18px;
+  border: 1px solid #b5d5f5;
+  box-shadow: 0 10px 30px rgba(12,18,28,0.04);
+  overflow: visible;
+}
+
+.erp-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.erp-table thead th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 700;
+  color: #2b3a45;
+  background: #beceec;
+  border-bottom: 1px solid #7ab8ff;
+}
+
+.erp-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f6fb;
+  color: #071027;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.erp-table input {
+  width: 70%;
+  height: 23px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #dbe7f2;
+  background: #e2e2e2;
+  font-size: 13px;
+  color: #0b1220;
+}
+
+.erp-table select {
+  width: 90%;
+  height: 35px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #dbe7f2;
+  background: #e2e2e2;
+  font-size: 13px;
+  color: #0b1220;
+}
+
+.line-item-title { font-weight:700; color:#0b1220; margin-bottom:4px; }
+.line-item-sub { color:#4b5563; font-size:12px; }
+
+.erp-table .empty-row td {
+  background: linear-gradient(180deg,#abd1fa,#f6f9fc);
+  border-radius: 8px;
+}
+
+.row-delete {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background:#ef4444;
+  color:#fff;
+  border:none;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* bottom area & totals */
+.erp-bottom {
+  display:flex;
+  gap:28px;
+  margin-top: 6px;
+  align-items:flex-start;
+  justify-content: space-between;
+}
+
+.erp-left {
+  min-width: 320px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.erp-input-row {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.erp-input-row label {
+  font-weight:600;
+  color:#212c3f;
+  font-size:13px;
+}
+
+.erp-input-row input {
+  width:220px;
+  height:42px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid #aad6fe;
+  background: #f6f8f7;
+  font-size: 12px;
+  color: #090d16;
+}
+
+.erp-right {
+  min-width: 320px;
+  background: #b9d3f4;
+  padding:14px;
+  border-radius:10px;
+  border:1px solid #eef3f8;
+  box-shadow: 0 6px 20px rgba(15,23,42,0.04);
+}
+
+.tot-row {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  color:#374151;
+  margin-bottom:8px;
+  font-size:14px;
+}
+
+.tot-row.grand {
+  font-size:16px;
+  font-weight:700;
+  color:#071027;
+}
+
+/* actions buttons */
+.addSales-actions,
+.addProforma-actions {
+  display:flex;
+  gap:12px;
+  margin-top:18px;
+  justify-content:flex-end;
+}
+
+.btn-ghost {
+  background: #3dbe01;
+  border: 1px solid #d1d5db;
+  color: #f0f0f0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 120px;
+  font-weight:700;
+}
+
+.btn-ghost:hover { background-color: #164614; }
+
+.btn-warning {
+  background: #f97316;
+  color: #151111;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 120px;
+  font-weight:700;
+}
+
+.btn-warning:hover { background-color: #3e783c; }
+
+.btn-primary {
+  background: #e2bc00;
+  color: #0c0303;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 180px;
+  font-weight:700;
+  box-shadow: 0 10px 30px rgba(34,197,94,0.14);
+}
+
+.btn-primary:hover { background-color: #30632e; }
+
+/* search input wrapper (keeps same behaviour/measurments) */
+.erp-search-input { position: relative; width: 100%; }
+.erp-search-input input {
+  width: 70%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #dbe3ee;
+  background: #ffffff;
+  font-size: 14px;
+  color: #0f172a;
+  transition: all 0.18s ease;
+}
+.erp-search-input input::placeholder { color: #94a3b8; }
+.erp-search-input input:focus { outline: none; border-color: #2563eb; box-shadow: 0 6px 20px rgba(37,99,235,0.08); }
+
+.erp-search-input .erp-dropdown-menu {
+  position: absolute;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  z-index: 999999;
+}
+
+.erp-search-input .erp-dropdown-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.erp-search-input .erp-dropdown-item:hover { background: #f1f5f9; }
+
+/* repeated product-row area (keeps same sizing) */
+.erp-product-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 18px; margin-bottom: 20px; }
+.erp-product-field label, .erp-charge-field label { font-size: 13px; font-weight: 600; color: #334155; }
+
+/* responsive adjustments (keep consistent with original) */
+@media (max-width: 1200px) {
+  .addSales-modal, .addProforma-modal { width: 95%; }
+  .erp-row.top-row { grid-template-columns: 1fr 160px 140px; gap:12px; }
+  .erp-product-row { grid-template-columns: 1fr; gap:10px; }
+  .erp-bottom { flex-direction: column; gap:12px; }
+  .addSales-actions { flex-wrap:wrap; }
+}
+
+@media (max-width: 640px) {
+  .erp-row.top-row { grid-template-columns: 1fr; }
+  .erp-product-row { grid-template-columns: 1fr; }
+  .erp-left input { width: 100%; }
+  .erp-right { min-width: auto; width: 100%; }
+}

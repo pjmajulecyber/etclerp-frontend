@@ -1,0 +1,179 @@
+
+
+/* src/pages/admin/settings/Users.css */
+
+.users-page {
+    padding: 24px;
+    width: 900px;
+  }
+  
+  .users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #2563eb;
+  }
+  
+  .add-btn {
+    background: #2563eb;
+    color: white;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .users-card {
+    margin-top: 20px;
+    background: #fff;
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  }
+  
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .users-table th,
+  .users-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .users-table th {
+    text-align: left;
+  }
+  
+  .active {
+    color: green;
+    font-weight: 600;
+  }
+  
+  .inactive {
+    color: red;
+    font-weight: 600;
+  }
+  
+  /* MODAL */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 500px;
+  }
+  
+  .users-form input,
+  .users-form select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 100%;
+  }
+  
+  /* ROW FORM */
+  .form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .checkbox {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: #2563eb;
+  }
+  
+  .save-btn {
+    width: 100%;
+    padding: 10px;
+    background: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+
+/* ================= ACTION BUTTONS ================= */
+
+.users-table td button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px;
+    margin-right: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* EDIT BUTTON */
+  .users-table td button:first-child {
+    color: #2563eb; /* blue */
+     
+    
+  }
+  
+  .users-table td button:first-child:hover {
+    background: rgba(37, 99, 235, 0.1);
+    color: #1d4ed8;
+    transform: scale(1.1);
+  }
+  
+  /* DELETE BUTTON */
+  .users-table td button:last-child {
+    color: #dc2626; /* red */
+  }
+  
+  .tax-table td button:last-child:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
+    transform: scale(1.1);
+  }
+  
+  /* ICON SIZE FIX */
+  .users-table td button svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    display: inline-block;
+  }
+  
+  /* ================= OPTIONAL: HOVER ROW EFFECT ================= */
+  .users-table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+  
+  /* ================= STATUS BADGES ================= */
+  .active {
+    background: #dcfce7;
+    color: #16a34a;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .inactive {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }

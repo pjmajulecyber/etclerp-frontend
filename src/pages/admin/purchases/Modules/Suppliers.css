@@ -1,0 +1,203 @@
+
+
+/* src/pages/admin/suppliers/Suppliers.css */
+
+/* ---------- Page layout ---------- */
+.sp-page {
+    padding: 20px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #222;
+    background: #fbfcfe;
+    width: 900px;
+  }
+  
+  /* Header */
+  .sp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  
+  .sp-titleBlock h1 { margin: 0; font-size: 22px; }
+  .sp-muted { margin: 4px 0 0; color: #6b7280; font-size: 13px; }
+  
+  /* Action buttons */
+  .sp-actions { display:flex; gap:10px; align-items:center; }
+  .sp-btn {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #111827;
+  }
+  .sp-btn.primary {
+    background: #0b6efd;
+    color: #fff;
+    border-color: #0b6efd;
+  }
+  .sp-btn.small { padding:6px 8px; font-size:13px; }
+  .sp-btn.danger { background: #ef4444; color: white; border-color: #ef4444; }
+  
+  /* Controls */
+  .sp-controls {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .sp-search {
+    width: 560px;
+    max-width: 64%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e6e9ef;
+    box-shadow: none;
+    font-size: 14px;
+  }
+  .sp-right { display:flex; gap:8px; align-items:center; }
+  .sp-selectLabel { font-size: 13px; color: #374151; margin-right: 6px; }
+  
+  /* Summary cards */
+  .sp-summary { display:flex; gap:12px; margin-bottom:14px; }
+  .sp-card {
+    background: #fff;
+    border: 1px solid #eef2ff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    min-width: 120px;
+    text-align: center;
+  }
+  .sp-cardLabel { font-size: 12px; color: #6b7280; }
+  .sp-cardValue { margin-top: 6px; font-size: 18px; font-weight:700; }
+  
+  /* Table */
+  .sp-tableWrap {
+    overflow: auto;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e6e9ef;
+  }
+  .sp-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1000px;
+  }
+  .sp-table thead th {
+    text-align: left;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border-bottom: 1px solid #eef2f6;
+    font-weight: 700;
+    font-size: 13px;
+    color: #0f172a;
+  }
+  .sp-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+    vertical-align: middle;
+    color: #111827;
+  }
+  .sp-empty { text-align:center; padding: 28px; color: #6b7280; }
+  
+  /* Code column smaller, address takes more space */
+  .sp-code { font-family: "Roboto Mono", monospace; font-weight:700; color:#0b6efd; }
+  .sp-address { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  
+  /* Row actions */
+  .sp-rowActions { display:flex; gap:8px; justify-content:flex-end; }
+  
+  /* Footer */
+  .sp-footer { padding: 12px 14px; color: #6b7280; }
+  
+  /* Pagination */
+  .sp-pagination { display:flex; justify-content:flex-end; margin-top:12px; align-items:center; gap:12px; }
+  .sp-pageInd { margin: 0 8px; font-weight:700; }
+  
+  /* ---------- Modal ---------- */
+  .sp-modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1300;
+  }
+  .sp-modalCard {
+    width: 840px;
+    max-width: 96%;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 14px 40px rgba(2,6,23,0.18);
+    overflow: hidden;
+  }
+  .sp-modalHead {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding: 16px 18px;
+    border-bottom: 1px solid #eef2f6;
+  }
+  .sp-modalHead h3 { margin:0; font-size:18px; }
+  .sp-close {
+    border: none;
+    background: transparent;
+    font-size:20px;
+    cursor:pointer;
+  }
+  
+  /* Modal body uses grid to match the requested layout:
+     CODE, NAME, CONTACT, PHONE, EMAIL, ADDRESS, TIN, STATUS, ACTION */
+  .sp-modalBody {
+    padding: 18px;
+  }
+  .sp-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+  
+  /* wide fields take two columns */
+  .sp-field { display:flex; flex-direction:column; gap:6px; }
+  .sp-field.wide { grid-column: span 2; }
+  .sp-field.actionsCol { display:flex; flex-direction:column; justify-content:flex-end; grid-column: span 2; }
+  
+  /* inputs */
+  .sp-field label { font-size:13px; color:#0f172a; font-weight:600; }
+  .sp-field input, .sp-field select, .sp-field textarea {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e6e9ef;
+    font-size: 14px;
+    background: #fff;
+  }
+  .sp-field input[readonly] { background: #f8fafc; color: #374151; }
+  
+  /* modal actions area inside grid */
+  .sp-modalActions { display:flex; gap:10px; justify-content:flex-end; }
+  .sp-modalActions .sp-btn { min-width: 100px; }
+  
+  /* server / field errors */
+  .sp-error { color:#b91c1c; font-size:13px; margin-top:6px; }
+  .serverErr { margin-top: 12px; }
+  
+  /* small responsiveness */
+  @media (max-width: 920px) {
+    .sp-grid { grid-template-columns: repeat(2, 1fr); }
+    .sp-field.wide { grid-column: span 2; }
+    .sp-table { min-width: 800px; }
+  }
+  
+  @media (max-width: 560px) {
+    .sp-search { width: 100%; max-width: 100%; }
+    .sp-table { min-width: 700px; }
+    .sp-grid { grid-template-columns: 1fr; }
+    .sp-field.actionsCol { grid-column: span 1; }
+  }

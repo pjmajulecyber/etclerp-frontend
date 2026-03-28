@@ -1,0 +1,449 @@
+/* src/pages/admin/purchases/modules/PurchaseOrder.css */
+
+/* Page container */
+.poi-page {
+  padding: 12px;
+  font-family: "Times New Roman", Georgia, serif;
+  color: #111;
+}
+
+/* Actions */
+.poi-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.poi-btn {
+  padding: 6px 10px;
+  margin-left: 6px;
+  background: #f0f0f0;
+  border: 1px solid #bbb;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.poi-btn-outline {
+  background: transparent;
+  border: 1px solid #2a5179;
+  color: #2a5179;
+}
+
+.poi-btn-pdf {
+  background: #0b84ff;
+  color: #fff;
+  border: none;
+}
+
+.poi-btn-print {
+  background: #28a745;
+  color: #fff;
+  border: none;
+}
+
+/* Print area */
+.poi-print-area {
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Card layout */
+.poi-card {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Header */
+.poi-header {
+  display: grid;
+  grid-template-columns: 160px 1fr 220px;
+  gap: 8px;
+  align-items: start;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #ddd;
+}
+
+.poi-logo img {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+}
+
+.poi-title-area {
+  text-align: center;
+  padding-top: 4px;
+}
+
+.poi-title-area h1 {
+  margin: 0;
+  font-size: 34px;
+  letter-spacing: 1px;
+  background: #dfe9ef;
+  padding: 10px 30px;
+  display: inline-block;
+}
+
+.poi-company {
+  font-weight: 700;
+  font-size: 18px;
+  margin-top: 6px;
+}
+
+.poi-company-meta {
+  font-size: 12px;
+  color: #333;
+}
+
+/* P/O boxes */
+.poi-boxes {
+  display:flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.poi-box {
+  border: 2px solid #000;
+  background: #fff;
+  text-align: center;
+  padding: 4px;
+  min-width: 160px;
+}
+
+.poi-box-label {
+  font-weight: 700;
+  font-size: 12px;
+  background: #fff;
+  color: #000;
+}
+
+.poi-box-value {
+  font-size: 16px;
+  margin-top: 4px;
+}
+
+/* Bill to */
+.poi-billto {
+  margin-top: 14px;
+}
+
+.poi-bill-title {
+  background: #dfe9ef;
+  padding: 6px 10px;
+  border: 1px solid #111;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.poi-bill-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.poi-left {
+  background: #d6e0e7;
+  width: 160px;
+  padding: 8px;
+  border: 1px solid #000;
+  font-weight: 600;
+}
+
+.poi-right {
+  padding: 8px;
+  border: 1px solid #000;
+}
+
+/* Items table */
+.poi-items {
+  margin-top: 12px;
+}
+
+.poi-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #000;
+}
+
+.poi-items-table th,
+.poi-items-table td {
+  border: 1px solid #000;
+  padding: 8px;
+  vertical-align: top;
+}
+
+.poi-items-table thead th {
+  background: #dfe9ef;
+  font-weight: 700;
+  text-align: left;
+}
+
+.poi-col-qty { width: 7%; text-align:center; }
+.poi-col-part { width: 60%; }
+.poi-col-unit { width: 12%; text-align:center; }
+.poi-col-amt { width: 12%; text-align:right; }
+.poi-col-cts { width: 4%; text-align:center; }
+
+/* Make the big blank space like in photo: table body large height */
+.poi-items-table tbody tr td.poi-col-part-cell { min-height: 300px; }
+
+/* Footer totals */
+.poi-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 28px;
+  align-items: center;
+}
+
+.poi-footer .poi-totals,
+.poi-footer .poi-vat,
+.poi-footer .poi-grand {
+  text-align: right;
+  font-weight: 700;
+}
+
+.poi-amt {
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+/* Print & export adjustments */
+@media print {
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .invoice-page {
+    background: #fff !important;
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+
+  .invoice-actions {
+    display: none !important;
+  }
+
+  .invoice-print-area {
+    display: block !important;
+    justify-content: center !important;
+  }
+
+  .paper-a4 {
+    width: 190mm !important;
+    min-height: 277mm !important;
+    margin: 0 auto !important;
+    padding: 8mm 10mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
+    background: #fff !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  .inv-items-table::before,
+  .invoice-main-table::before {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ========== TUNING NOTES (quick) ==========
+ - To move where the short dividers stop: adjust the pixel offset used in background-size above (currently 120px).
+   If you make the body area taller or shorter, reduce/increase that 120px to keep the short dividers stopping above totals.
+ - If your column widths change, update the background-position cumulative percentages:
+   pos = sum of widths to the right edge of each column: (12%, 12+53=65%, 65+12=77%, 77+18=95%)
+ - Change --divider-width to 2px or 4px to thin/thicken lines.
+ - If you prefer the leftmost column divider to stop sooner, change the first two background-size heights separately.
+============================================ */
+
+/* Responsive adjustments */
+@media (max-width: 980px) {
+  .paper-a4 { width: 100%; padding: 12px; }
+  .inv-top-grids { flex-direction: column; }
+  .inv-header { flex-direction: column; gap:12px; align-items:stretch; }
+  .inv-header-right { width:100%; order:3; }
+  .inv-header-left { order:1; }
+  .inv-header-center { order:2; }
+  .inv-top-meta-row { flex-direction: column; }
+}
+
+/* =========================
+  TOP: invoice no / TIN above Bill To / Depot
+  Replace the earlier inv-top-meta-row / inv-top-grids rules with these
+  ========================= */
+
+/* Container for the small meta boxes (Invoice No + TIN) */
+.inv-top-meta-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Each small box sits as a column header above the corresponding info box */
+.inv-top-meta-row .meta-small-box {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid #000;
+  padding: 8px 10px;
+  font-weight: 700;
+  font-size: 13px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Wrapper for the Bill To & Depot boxes (second row) */
+.inv-top-grids {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* The two main info boxes will align under the two meta boxes above */
+.bill-to, .depot-box {
+  flex: 1 1 0;
+  box-sizing: border-box;
+  border: 1px solid #000;
+  padding: 8px;
+  background: #f8fafc;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.incol-qty {
+  text-align: center;
+  padding: 10px;
+}
+
+/* make the inner 'box-title' and inner table fit compactly */
+.bill-to .box-title,
+.depot-box .box-title {
+  margin-bottom: 8px;
+}
+
+/* Compact info table rows */
+.info-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #cbd5e1;
+  font-size: 12px;
+}
+
+/* Ensure the Invoice/TIN boxes line up exactly with Bill/Depot widths */
+.inv-top-meta-row .meta-small-box,
+.inv-top-grids .bill-to,
+.inv-top-grids .depot-box {
+  flex-basis: 50%;
+}
+
+/* On narrow screens stack gracefully: meta boxes above, then info boxes */
+@media (max-width: 980px) {
+  .inv-top-meta-row { flex-direction: column; gap: 8px; }
+  .inv-top-grids { flex-direction: column; gap: 8px; margin-top: 6px; }
+  .inv-top-meta-row .meta-small-box,
+  .inv-top-grids .bill-to,
+  .inv-top-grids .depot-box { flex-basis: auto; width: 100%; }
+}
+
+/* ===== SIGNATURES TOP ROW ===== */
+.sig-row{
+  display:flex;
+  justify-content:space-between;
+  gap:40px;
+  margin-top:20px;
+}
+
+.sig-col{
+  flex:1;
+  font-family:"Times New Roman", serif;
+}
+
+.sig-title{
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+.inedit {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  font-size: 13px;
+  font-weight: 800;
+  color: #111111;
+}
+
+.sig-field{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:8px 0;
+}
+
+.sig-line{
+  flex:1;
+  border-bottom:1px solid #000;
+  height:14px;
+}
+
+/* ===== BANK DETAILS ===== */
+.bank-header{
+  margin-top:18px;
+}
+
+.make-payment{
+  font-size:9.5px;
+  font-weight: 800;
+  margin-bottom:4px;
+}
+
+.bank-title{
+  font-weight:700;
+  font-size:9.5px;
+  letter-spacing:0.5px;
+}
+
+.bank-grid{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns: 220px 1fr 1fr 1fr;
+  gap:40px;
+}
+
+.bank-labels div{
+  margin-bottom:6px;
+  font-size: 9.5px;
+}
+
+.bank-col div{
+  margin-bottom:6px;
+}
+
+.bank-red{
+  color:#b00000;
+  font-weight:500;
+  font-size: 9.5px;
+}

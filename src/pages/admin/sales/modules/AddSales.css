@@ -1,0 +1,653 @@
+/* =====================================================
+   ROOT VARIABLES
+===================================================== */
+:root {
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --muted: #0b0c0c;
+  --accent: #2563eb;
+  --success: #10b981;
+  --danger: #ef4444;
+  --text: #071027;
+  --border: #e6eef7;
+  --shadow: 0 10px 28px rgba(11, 18, 30, 0.05);
+  --radius: 10px;
+}
+
+/* =====================================================
+   PAGE BASE / MODAL OVERLAY
+===================================================== */
+.addSales-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 11000;
+}
+
+.addSales-modal {
+  background: linear-gradient(135deg, #9fa7fe, #cbf9d1);
+  width: 95%;
+  max-width: 980px;
+  height: 92vh;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.addSales-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+.addSales-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px;
+  border-top: 6px solid #b2b9fc;
+  border-bottom: 1px solid #eef3f8;
+  background: linear-gradient(135deg, #4151ff, #dd0285);
+  flex-shrink: 0;
+}
+
+.addSales-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.addSales-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.addSales-headerRight {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.addSales-close {
+  border-radius: 10px;
+  border: none;
+  background: #f3f6fb;
+  color: #0b1220;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 6px 10px;
+}
+
+/* =====================================================
+   TOP ROW - extended to include PO, depot, driver, truck, trailer
+===================================================== */
+.erp-row.top-row {
+  display: grid;
+  /* expanded columns to contain: customer | date | status | po# | poDate | depot | driver | truck | trailer | ac code
+     We keep a flexible layout but ensure it stays on a single row on wide screens.
+  */
+  grid-template-columns: 1fr 140px 140px 140px 140px 160px 140px 120px 120px 120px;
+  gap: 9px;
+  align-items: center;
+  margin-bottom: 18px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1300px) {
+  .erp-row.top-row {
+    grid-template-columns: 1fr 140px 140px 140px 140px 120px 120px;
+  }
+}
+@media (max-width: 1060px) {
+  .erp-row.top-row { grid-template-columns: 1fr 160px 140px 140px; }
+}
+@media (max-width: 760px) {
+  .erp-row.top-row { grid-template-columns: 1fr; gap:10px; }
+}
+
+/* fields */
+.erp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.erp-field label {
+  font-size: 13px;
+  color: #344154;
+  font-weight: 600;
+}
+
+.erp-field input,
+.erp-field select,
+.erp-row input,
+.erp-row select {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #a1cbf3;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #071027;
+  background: #f5f5fc;
+  transition: box-shadow .12s, border-color .12s;
+}
+
+.erp-field input::placeholder { color: #9aa6b3; }
+
+.erp-field input:focus,
+.erp-field select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 8px 26px rgba(37,99,235,0.08);
+}
+
+.erp-selected {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #0b1220;
+  background: #c7c9cc;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+/* =====================================================
+   DROPDOWNS / SEARCH MENUS
+==================================================== */
+.erp-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 18px 40px rgba(6, 11, 20, 0.12);
+  border: 1px solid #5230fa;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 13000;
+}
+
+.erp-dropdown-item {
+  display:flex;
+  gap:10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  align-items: center;
+}
+
+.erp-dropdown-item .erp-dd-code {
+  font-weight:700;
+  color:#080b13;
+  width:88px;
+}
+
+.erp-dropdown-item .erp-dd-name {
+  color:#334155;
+}
+
+.erp-dropdown-item:hover { background:#a7cff8; }
+.erp-dropdown-item.none { color:#9e908b; }
+
+/* =====================================================
+   PRODUCT TABLE / ROWS
+==================================================== */
+.erp-table-wrapper {
+  background: linear-gradient(180deg,#fbfdff,#ffffff);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 18px;
+  border: 1px solid #b5d5f5;
+  box-shadow: 0 10px 30px rgba(12,18,28,0.04);
+  overflow: visible;
+}
+
+.erp-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.erp-table thead th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 700;
+  color: #2b3a45;
+  background: #beceec;
+  border-bottom: 1px solid #7ab8ff;
+}
+
+.erp-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f6fb;
+  color: #071027;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.erp-table input {
+  width: 70%;
+  height: 28px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #dbe7f2;
+  background: #e2e2e2;
+  font-size: 13px;
+  color: #0b1220;
+}
+
+.erp-table select {
+  width: 100%;
+  height: 36px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #dbe7f2;
+  background: #fff;
+  font-size: 13px;
+  color: #0b1220;
+}
+
+.line-item-title { font-weight:700; color:#0b1220; margin-bottom:4px; }
+.line-item-sub { color:#4b5563; font-size:12px; }
+
+.erp-table .empty-row td {
+  background: linear-gradient(180deg,#abd1fa,#f6f9fc);
+  border-radius: 8px;
+}
+
+.row-delete {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background:#ef4444;
+  color:#fff;
+  border:none;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* =====================================================
+   BOTTOM / TOTALS
+==================================================== */
+.erp-bottom {
+  display:flex;
+  gap:28px;
+  margin-top: 6px;
+  align-items:flex-start;
+  justify-content: space-between;
+}
+
+.erp-left {
+  min-width: 320px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.erp-input-row {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.erp-input-row label {
+  font-weight:600;
+  color:#212c3f;
+  font-size:13px;
+}
+
+.erp-input-row input {
+  width:220px;
+  height:42px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid #aad6fe;
+  background: #f6f8f7;
+  font-size: 12px;
+  color: #090d16;
+}
+
+.erp-right {
+  min-width: 320px;
+  background: #b9d3f4;
+  padding:14px;
+  border-radius:10px;
+  border:1px solid #eef3f8;
+  box-shadow: 0 6px 20px rgba(15,23,42,0.04);
+}
+
+.tot-row {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  color:#374151;
+  margin-bottom:8px;
+  font-size:14px;
+}
+
+.tot-row.grand {
+  font-size:16px;
+  font-weight:700;
+  color:#071027;
+}
+
+/* =====================================================
+   ACTIONS
+==================================================== */
+.addSales-actions {
+  display:flex;
+  gap:12px;
+  margin-top:18px;
+  justify-content:flex-end;
+}
+
+.btn-ghost {
+  background: #3dbe01;
+  border: 1px solid #d1d5db;
+  color: #f0f0f0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 120px;
+  font-weight:700;
+}
+.btn-ghost:hover { background-color: #164614; }
+
+.btn-warning {
+  background: #f97316;
+  color: #151111;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 120px;
+  font-weight:700;
+}
+.btn-warning:hover { background-color: #3e783c; }
+
+.btn-primary {
+  background:  #e2bc00;
+  color: #0c0303;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 180px;
+  font-weight:700;
+  box-shadow: 0 10px 30px rgba(34,197,94,0.14);
+}
+.btn-primary:hover { background-color: #30632e; }
+
+/* add-row button */
+.erp-add-btn {
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background:#2563eb;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor:pointer;
+  box-shadow: 0 10px 28px rgba(37,99,235,0.12);
+  margin-top: 8px;
+}
+.erp-add-btn:hover { transform: translateY(-2px); }
+
+/* =====================================================
+   RESPONSIVE
+==================================================== */
+@media (max-width: 1200px) {
+  .addSales-modal { width: 95%; }
+  .erp-row.top-row { grid-template-columns: 1fr 160px 140px 140px; gap:12px; }
+  .erp-product-row { grid-template-columns: 1fr; gap:10px; }
+  .erp-bottom { flex-direction: column; gap:12px; }
+  .addSales-actions { flex-wrap:wrap; }
+}
+
+@media (max-width: 640px) {
+  .erp-row.top-row { grid-template-columns: 1fr; }
+  .erp-product-row { grid-template-columns: 1fr; }
+  .erp-left input { width: 100%; }
+  .erp-right { min-width: auto; width: 100%; }
+}
+
+/* ================= DELIVERY COMPONENTS ================= */
+
+.delivery-section {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: rgb(212, 213, 255);
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  font-size: 15px;
+  color: #0b0c0c;
+  box-shadow: 0 8px 24px rgba(13, 30, 70, 0.06);
+}
+
+/* small helper text under title */
+.delivery-section .small-muted {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 6px 0 10px;
+}
+
+/* wrapper that contains the table (adds horizontal scroll on small screens) */
+.delivery-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #bcbcff;
+}
+
+/* delivery table */
+.delivery-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px; /* allows table to be scrollable on narrow viewports */
+  font-size: 14px;
+}
+
+/* header */
+.delivery-table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 700;
+  color: #0b254a;
+  background: transparent;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  vertical-align: middle;
+}
+
+/* body rows */
+.delivery-table tbody tr {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.03);
+}
+
+.delivery-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* table cells & inputs */
+.delivery-table td {
+  padding: 10px 12px;
+  vertical-align: middle;
+}
+
+/* inputs inside the delivery table - mirror main form input appearance */
+.delivery-table input[type="text"],
+.delivery-table input[type="number"],
+.delivery-table select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+  background: #fbfdff;
+  font-size: 14px;
+  color: #0b254a;
+  outline: none;
+  box-sizing: border-box;
+  transition: box-shadow .12s ease, border-color .12s ease;
+}
+
+.dlvinputs {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+  background: #fbfdff;
+  font-size: 14px;
+  color: #0b254a;
+  outline: none;
+  box-sizing: border-box;
+  transition: box-shadow .12s ease, border-color .12s ease;
+}
+
+
+.delivery-table input::placeholder {
+  color: #9aa3b2;
+}
+
+/* input focus */
+.delivery-table input:focus,
+.delivery-table select:focus {
+  border-color: #a8b4ff;
+  box-shadow: 0 6px 18px rgba(14,48,232,0.06);
+}
+
+/* delete row button inside delivery table - slightly smaller than main row-delete */
+.delivery-table .row-delete {
+  background: transparent;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  color: #111827;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* Add-row button reuse (keeps existing class but make sure spacing here) */
+.erp-add-btn {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: linear-gradient(180deg,#ffffff,#f3f4ff);
+  border: 1px solid rgba(15,23,42,0.05);
+  cursor: pointer;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+/* delivery image preview area */
+.delivery-images-preview {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* single preview tile */
+.delivery-images-preview .preview-tile {
+  width: 120px;
+  height: 84px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f7fafc;
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* image inside tile */
+.delivery-images-preview .preview-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* filename fallback */
+.delivery-images-preview .preview-tile .file-name {
+  padding: 6px;
+  font-size: 12px;
+  color: #374151;
+  text-align: center;
+}
+
+/* remove image button (top-right) */
+.delivery-images-preview .preview-tile button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 2px 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* input file default styling */
+.delivery-section input[type="file"] {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #374151;
+}
+
+/* small layout tweaks for totals alignment with delivery */
+.erp-bottom {
+  margin-top: 12px;
+}
+
+/* responsive: stack delivery rows on small screens */
+@media (max-width: 820px) {
+  .delivery-table {
+    min-width: 0;
+  }
+
+  .delivery-table thead {
+    display: none;
+  }
+
+  .delivery-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+  }
+
+  .delivery-table td {
+    padding: 6px 0;
+  }
+
+  .delivery-table td:nth-child(5) {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .delivery-images-preview {
+    gap: 8px;
+  }
+
+  .delivery-images-preview .preview-tile {
+    width: 40%;
+    height: 80px;
+  }
+}

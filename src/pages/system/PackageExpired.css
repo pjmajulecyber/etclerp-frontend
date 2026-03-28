@@ -1,0 +1,97 @@
+
+.package-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:999999;
+  }
+  
+  .package-modal{
+    width:460px;
+    background:#fff;
+    border-radius:12px;
+    padding:28px;
+    color: #0f1013;
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.2),
+      0 6px 20px rgba(0,0,0,0.1);
+    animation:pop .3s ease;
+  }
+  
+  @keyframes pop{
+    from{
+      transform:scale(.9);
+      opacity:0;
+    }
+    to{
+      transform:scale(1);
+      opacity:1;
+    }
+  }
+  
+  .package-header h2{
+    margin:0;
+    color:#b91c1c;
+  }
+  
+  .package-header p{
+    margin-top:4px;
+    color:#545b68;
+    font-size:14px;
+  }
+  
+  .package-body{
+    margin-top:20px;
+  }
+  
+  .package-info{
+    background:#f8fafc;
+    border-radius:8px;
+    padding:14px;
+  }
+  
+  .package-row{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+    font-size:14px;
+  }
+  
+  .package-warning{
+    margin-top:14px;
+    padding:12px;
+    border-radius:6px;
+    background:#fff4f4;
+    color:#b91c1c;
+    font-size:13px;
+  }
+  
+  .package-actions{
+    margin-top:20px;
+    display:flex;
+    gap:10px;
+  }
+  
+  .package-btn{
+    flex:1;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+  }
+  
+  .package-btn.primary{
+    background:#ff0303;
+    color:white;
+    text-align: center;
+  }
+  
+  .package-btn.secondary{
+    background:#7c7c7c;
+    text-align: center;
+    color: #37ff0a;
+  }
