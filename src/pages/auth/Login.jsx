@@ -9,7 +9,7 @@ import hero3 from "../../assets/login-image-3.jpg";
 
 import { useAuth } from "./AuthProvider";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
 export default function Login() {
 

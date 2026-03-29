@@ -103,7 +103,7 @@ export default function SalesList() {
     async function loadSales() {
       try {
   
-        const res = await fetch("http://127.0.0.1:8000/api/sales/", {
+        const res = await fetch(`${API_BASE}/sales/`, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("access")
           }
