@@ -20,7 +20,7 @@ import {
   FiChevronDown
 } from "react-icons/fi";
 
-import "./Sidebar.css";
+import "./sidebar.css";
 
 export default function Sidebar() {
   const location = useLocation();

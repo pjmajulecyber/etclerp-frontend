@@ -327,10 +327,10 @@
   }
   
   /* Accent borders */
-  .summary-card.credit { border-Top:4px solid #0ea5a5; }
-  .summary-card.debit { border-Top:4px solid #f59e0b; }
-  .summary-card.balance { border-Top:4px solid #2563eb; }
-  .summary-card.overdue { border-Top:4px solid #ef4444; }
+  .summary-card.credit { border-top:4px solid #0ea5a5; }
+  .summary-card.debit { border-top:4px solid #f59e0b; }
+  .summary-card.balance { border-top:4px solid #2563eb; }
+  .summary-card.overdue { border-top:4px solid #ef4444; }
   
   /* ================= STATEMENT AREA ================= */
   .statement-wrap{
