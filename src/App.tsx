@@ -6,10 +6,10 @@ import Dashboard from "./pages/admin/Dashboard";
 import PackageExpire from "./pages/system/PackageExpire";
 
 /* --- Sales --- */
-import SalesList from "./pages/admin/Sales/SalesList";
-import Invoice from "./pages/admin/Sales/modules/Invoice";
-import Quatation from "./pages/admin/Sales/modules/Quatation";
-import Overdue from "./pages/admin/Sales/modules/Overdue";
+import SalesList from "./pages/admin/sales/SalesList";
+import Invoice from "./pages/admin/sales/modules/Invoice";
+import Quatation from "./pages/admin/sales/modules/Quatation";
+import Overdue from "./pages/admin/sales/modules/Overdue";
 import AddSales from "./pages/admin/sales/modules/AddSales";
 import AddProforma from "./pages/admin/sales/modules/AddProforma";
 import InvoicePreview from "./pages/admin/sales/modules/InvoicePreview";
@@ -20,9 +20,9 @@ import ProformaInvoices from "./pages/admin/sales/modules/ProformaInvoices";
 
 /* --- Purchases --- */
 import PurchasesList from "./pages/admin/purchases/PurchasesList";
-import AddPurchases from "./pages/admin/purchases/modules/AddPurchases";
-import PurchasesInvoicePreview from "./pages/admin/purchases/modules/PurchasesInvoicePreview";
-import Supplier from "./pages/admin/purchases/modules/supplier";
+import AddPurchases from "./pages/admin/purchases/Modules/AddPurchases";
+import PurchasesInvoicePreview from "./pages/admin/purchases/Modules/PurchasesInvoicePreview";
+import Supplier from "./pages/admin/purchases/Modules/supplier";
 
 /* --- Customers --- */
 import CustomerList from "./pages/admin/customers/CustomerList";
@@ -171,9 +171,9 @@ function AppRoutes() {
       {/* ================= MODAL ROUTES ================= */}
       {backgroundLocation && (
         <Routes>
-          <Route path="/admin/sales/modules/add" element={<AddSales />} />
-          <Route path="/admin/sales/modules/add-proforma" element={<AddProforma />} />
-          <Route path="/admin/purchases/modules/add" element={<AddPurchases />} />
+          <Route path="/admin/sales/modules/add" element={<AddSales onClose={() => window.history.back()} />} />
+          <Route path="/admin/sales/modules/add-proforma" element={<AddProforma onClose={() => window.history.back()} />} />
+          <Route path="/admin/purchases/modules/add" element={<AddPurchases onClose={() => window.history.back()} />} />
         </Routes>
       )}
     </>

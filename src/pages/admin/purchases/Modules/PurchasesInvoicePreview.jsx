@@ -1,4 +1,3 @@
-// src/pages/admin/sales/modules/PurchaseOrder.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
