@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiDollarSign } from "react-icons/fi";
 
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || ""; 
 const ACCOUNT_CODE = "41000"; // <-- constant ac code for all sales
 
 const customers = [
