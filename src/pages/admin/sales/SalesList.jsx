@@ -105,11 +105,15 @@ export default function SalesList() {
     async function loadSales() {
       try {
   
-        const res = await fetch(`${API_BASE}/sales/`, {
+        const res = await fetch(`${API_BASE}/api/sales/`, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("access")
           }
         });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load sales: ${res.status}`);
+        }        
   
         const data = await res.json();
   
