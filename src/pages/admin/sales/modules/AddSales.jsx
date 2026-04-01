@@ -597,18 +597,11 @@ export default function AddSalesModal({ onClose }) {
         backendResponse: res
       };
 
-      if (typeof onClose === "function") {
-        onClose();
-      }
-      
-      setTimeout(() => {
-        navigate("/admin/sales/invoice-preview", {
-          state: saleDataForPreview,
-          replace: true,
-        });
-      }, 0);
-      
-      return;
+      navigate("/admin/sales/invoice-preview", {
+        state: saleDataForPreview,
+      });
+
+      if (typeof onClose === "function") onClose();
     } catch (err) {
       alert("Saving sale failed: " + (err.message || err));
     }
