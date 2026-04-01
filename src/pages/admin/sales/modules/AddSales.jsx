@@ -544,15 +544,20 @@ export default function AddSalesModal({ onClose }) {
     }
   };
 
+ 
+
   const handleSaveAndCreateInvoice = async (e) => {
     e?.preventDefault?.();
+
     const mappedCompartments = deliveryNotes.map(d => ({
       compartment_number: d.tankNumber,
       litres: Number(d.fuelQuantity || 0),
       upper_seal_number: d.upperSeal,
       lower_seal_number: d.lowerSeal
     }));
+
     const row = buildSaleRow();
+
     const salePayload = {
       invoice_number: row.invoice,
       date,
@@ -576,36 +581,69 @@ export default function AddSalesModal({ onClose }) {
       delivery_files: row.deliveryImages.map(f => f.name)
     };
 
-    try {
-      console.log("SALE PAYLOAD", salePayload);
-      const res = await submitToBackend(salePayload, deliveryImages);
+  try {
+    console.log("SALE PAYLOAD", salePayload);
 
-      invoiceCounter++;
-      persistToSession("sales_list", row);
+    // 1. Create sale
+    const createRes = await submitToBackend(salePayload, deliveryImages);
+    console.log("CREATE SALE RESPONSE:", createRes);
 
-      const saleDataForPreview = {
-        ...res,
-        invoiceNumber: res.invoiceNumber ?? row.invoice,
-        date: res.date ?? date,
-        customer: selectedCustomer ? { accCode: selectedCustomer.accCode, name: selectedCustomer.name } : null,
-        items: res.items ?? row.items,
-        discountAll,
-        paidAmount: row.paid,
-        calculations,
-        deliveryNotes: row.deliveryNotes,
-        deliveryImages: row.deliveryImages,
-        backendResponse: res
-      };
+    invoiceCounter++;
+    persistToSession("sales_list", row);
 
-      navigate("/admin/sales/invoice-preview", {
-        state: saleDataForPreview,
-      });
+    // 2. Get created invoice number
+    const createdInvoiceNumber =
+      createRes?.invoice_number ??
+      createRes?.invoiceNumber ??
+      salePayload.invoice_number;
 
-      if (typeof onClose === "function") onClose();
-    } catch (err) {
-      alert("Saving sale failed: " + (err.message || err));
-    }
-  };
+    // 3. Refetch from sales list so we get the REAL saved sale with REAL id
+    const listRes = await API.get("/sales/");
+    const listData = listRes?.data;
+
+    const sales = Array.isArray(listData)
+      ? listData
+      : Array.isArray(listData?.results)
+      ? listData.results
+      : Array.isArray(listData?.sales)
+      ? listData.sales
+      : [];
+
+    const freshSale =
+      sales.find(
+        (s) =>
+          s?.invoice_number === createdInvoiceNumber ||
+          s?.invoiceNumber === createdInvoiceNumber ||
+          s?.invoice === createdInvoiceNumber
+      ) || null;
+
+    console.log("FRESH SALE FROM LIST:", freshSale);
+
+    const saleDataForPreview = {
+      ...(freshSale || createRes),
+      date: (freshSale || createRes)?.date ?? date,
+      customer: selectedCustomer
+        ? { accCode: selectedCustomer.accCode, name: selectedCustomer.name }
+        : null,
+      items: (freshSale || createRes)?.items ?? row.items,
+      discountAll,
+      paidAmount: row.paid,
+      calculations,
+      deliveryNotes: row.deliveryNotes,
+      deliveryImages: row.deliveryImages,
+      backendResponse: createRes
+    };
+
+    navigate("/admin/sales/invoice-preview", {
+      state: saleDataForPreview,
+      replace: true,
+    });
+
+    return;
+  } catch (err) {
+    alert("Saving sale failed: " + (err.message || err));
+  }
+};
 
   const handleCreditSale = async (e) => {
     e?.preventDefault?.();
