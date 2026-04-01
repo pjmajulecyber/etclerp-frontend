@@ -1,8 +1,10 @@
+
+
 // src/pages/admin/sales/modules/AddSales.jsx
 import "./AddSales.css";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import API from "../../../../services/api"; // <-- imported and used for all API calls
+import API from "../../../../services/api";
 
 /* ================= SMART ACCOUNT STRUCTURE (DATA) ================= */
 
@@ -96,7 +98,6 @@ export default function AddSalesModal({ onClose }) {
 
   // Delivery-related new state
   const [deliveryNotes, setDeliveryNotes] = useState([
-    // default one row
     { id: Date.now(), tankNumber: "", fuelQuantity: "", upperSeal: "", lowerSeal: "" }
   ]);
 
@@ -104,14 +105,13 @@ export default function AddSalesModal({ onClose }) {
   const [deliveryImages, setDeliveryImages] = useState([]);
 
   // --- API-loaded master data states (added, do not remove) ---
-  const [customersAPI, setCustomersAPI] = useState([]);         // /api/customers/
-  const [productsAPI, setProductsAPI] = useState([]);           // /api/inventory/products/
-  const [depotsAPI, setDepotsAPI] = useState([]);               // /api/inventory/depots/
-  const [driversAPI, setDriversAPI] = useState([]);             // /api/logistics/drivers/
-  const [trucksAPI, setTrucksAPI] = useState([]);               // /api/logistics/trucks/
-  
+  const [customersAPI, setCustomersAPI] = useState([]);
+  const [productsAPI, setProductsAPI] = useState([]);
+  const [depotsAPI, setDepotsAPI] = useState([]);
+  const [driversAPI, setDriversAPI] = useState([]);
+  const [trucksAPI, setTrucksAPI] = useState([]);
 
-  const invoiceNumber = incoming?.invoiceNumber || `INV-${Date.now()}`;
+  const invoiceNumber = incoming?.invoiceNumber || incoming?.invoice_number || `INV-${Date.now()}`;
 
   useEffect(() => {
     const onKey = (e) => {
@@ -119,10 +119,10 @@ export default function AddSalesModal({ onClose }) {
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "auto";
-      // revoke object URLs
       deliveryImages.forEach(img => (img.url && URL.revokeObjectURL(img.url)));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,7 +133,6 @@ export default function AddSalesModal({ onClose }) {
     if (!incoming) return;
 
     if (incoming.customer) {
-      // support string form "12000 - Name" or object { accCode, name }
       if (typeof incoming.customer === "string") {
         const parts = incoming.customer.split(" - ");
         const acc = parts[0]?.trim() || "";
@@ -143,10 +142,11 @@ export default function AddSalesModal({ onClose }) {
       } else {
         const cust = incoming.customer;
         const acc = cust.accCode ?? cust.code ?? null;
-        setSelectedCustomer({ id: cust.id ?? null, accCode: acc, name: cust.name });
+        setSelectedCustomer({ id: cust.id ?? cust.pk ?? null, accCode: acc, name: cust.name });
         setCustomerSearch(`${acc} - ${cust.name}`);
       }
     }
+
     if (incoming.date) setDate(incoming.date);
     if (incoming.saleType) setSaleType(incoming.saleType);
     if (incoming.referenceNo) setReferenceNo(incoming.referenceNo);
@@ -158,18 +158,17 @@ export default function AddSalesModal({ onClose }) {
     if (incoming.truckNo) setTruckNo(incoming.truckNo);
     if (incoming.trailerNo) setTrailerNo(incoming.trailerNo);
 
-    // incoming.items may use accCode, productCode, etc. Normalize to canonical item shape
     if (incoming.items && Array.isArray(incoming.items)) {
       const cloned = incoming.items.map(it => {
-        const productCode = it.productCode ?? it.accCode ?? it.code ?? "";
+        const productCode = it.productCode ?? it.accCode ?? it.code ?? it.product ?? "";
         return {
-          id: it.id ?? `${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+          id: it.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           productCode,
-          accCode: productCode, // keep accCode for older logic compatibility
-          name: it.name || "",
-          price: Number(it.price ?? it.unitPrice ?? 0),
-          qty: Number(it.qty ?? 1),
-          taxType: it.taxType || "Exclusive",
+          accCode: productCode,
+          name: it.name || it.description || "",
+          price: Number(it.price ?? it.unitPrice ?? it.unit_price ?? 0),
+          qty: Number(it.qty ?? it.quantity ?? 1),
+          taxType: it.taxType || it.tax_type || "Exclusive",
           type: it.type || (String(productCode).startsWith("150") ? "charge" : "product")
         };
       });
@@ -184,44 +183,50 @@ export default function AddSalesModal({ onClose }) {
       setPaidAmount(Number(incoming.paidAmount) || 0);
     }
 
-    // incoming delivery data
     if (incoming.deliveryNotes && Array.isArray(incoming.deliveryNotes)) {
       setDeliveryNotes(incoming.deliveryNotes.map(d => ({ id: d.id || Date.now(), ...d })));
     }
+
     if (incoming.deliveryImages && Array.isArray(incoming.deliveryImages)) {
-      // we can't reconstruct file objects — keep filenames in state as placeholder
-      setDeliveryImages(incoming.deliveryImages.map((name, idx) => ({ file: null, url: "", name })));
+      setDeliveryImages(
+        incoming.deliveryImages.map((img, idx) => {
+          if (typeof img === "string") {
+            return { file: null, url: "", name: img };
+          }
+          return {
+            file: null,
+            url: img?.url || "",
+            name: img?.name || `image-${idx + 1}`
+          };
+        })
+      );
     }
   }, [incoming]);
 
   // -------------------------
-  // Load master data from APIs (customers, products, depots, logistics)
+  // Load master data from APIs
   // -------------------------
   useEffect(() => {
     let mounted = true;
 
     async function loadMasterData() {
       try {
-        // use API service (axios instance) — it should attach Authorization automatically if configured
         const [
           customersRes,
           productsRes,
           depotsRes,
           driversRes,
-          trucksRes,
-          trailersRes
+          trucksRes
         ] = await Promise.all([
-          API.get("/customers/").catch(e => ({ data: [] })),
-          API.get("/inventory/products/").catch(e => ({ data: [] })),
-          API.get("/inventory/depots/").catch(e => ({ data: [] })),
-          API.get("/logistics/drivers/").catch(e => ({ data: [] })),
-          API.get("/logistics/trucks/").catch(e => ({ data: [] })),
-  
+          API.get("/customers/").catch(() => ({ data: [] })),
+          API.get("/inventory/products/").catch(() => ({ data: [] })),
+          API.get("/inventory/depots/").catch(() => ({ data: [] })),
+          API.get("/logistics/drivers/").catch(() => ({ data: [] })),
+          API.get("/logistics/trucks/").catch(() => ({ data: [] })),
         ]);
 
         if (!mounted) return;
 
-        // axios returns .data; normalize pagination {results: []} or direct arrays
         const unwrap = (d) => {
           const val = d && d.data !== undefined ? d.data : d;
           if (Array.isArray(val)) return val;
@@ -234,10 +239,8 @@ export default function AddSalesModal({ onClose }) {
         setDepotsAPI(unwrap(depotsRes));
         setDriversAPI(unwrap(driversRes));
         setTrucksAPI(unwrap(trucksRes));
-        
       } catch (err) {
         console.error("Failed loading ERP master data", err);
-        // keep fallback data if API fails
       }
     }
 
@@ -246,7 +249,6 @@ export default function AddSalesModal({ onClose }) {
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Search customers by accCode or name (use API data when available, else fallback)
@@ -264,7 +266,7 @@ export default function AddSalesModal({ onClose }) {
   const truckSource = trucksAPI.length ? trucksAPI : trucksDB;
   const trailerSource = trucksAPI.length ? trucksAPI : trailersDB;
 
-  // --- Table row helpers (table-driven product + charges) ---
+  // --- Table row helpers ---
   const addEmptyRow = () => {
     setItems(prev => [
       ...prev,
@@ -295,7 +297,10 @@ export default function AddSalesModal({ onClose }) {
 
   // --- Delivery helpers ---
   const addDeliveryRow = () => {
-    setDeliveryNotes(prev => [...prev, { id: Date.now(), tankNumber: "", fuelQuantity: "", upperSeal: "", lowerSeal: "" }]);
+    setDeliveryNotes(prev => [
+      ...prev,
+      { id: Date.now(), tankNumber: "", fuelQuantity: "", upperSeal: "", lowerSeal: "" }
+    ]);
   };
 
   const updateDeliveryRow = (index, field, value) => {
@@ -318,7 +323,7 @@ export default function AddSalesModal({ onClose }) {
       url: URL.createObjectURL(f),
       name: f.name
     }));
-    // revoke previous urls to avoid leaks
+
     deliveryImages.forEach(img => img.url && URL.revokeObjectURL(img.url));
     setDeliveryImages(mapped);
   };
@@ -374,17 +379,15 @@ export default function AddSalesModal({ onClose }) {
     const outstanding = Math.max(0, amount - paid);
     const invoiceVal = invoiceNumber.includes("INV-2026-") ? invoiceNumber : `INV-2026-${id}`;
 
-    // customerCode should come from selectedCustomer.accCode (if selected)
     const customerCode = selectedCustomer?.accCode || "";
 
-    // transform items into canonical item objects (productCode + accCode for compatibility)
     const canonicalItems = items.map((it, idx) => {
       const prod = it.productCode || it.accCode || "";
-    
+
       return {
         id: it.id ?? `${invoiceVal}-${idx}`,
         invoice: invoiceVal,
-        product: prod, // backend expects product
+        product: prod,
         item_type: (it.type || "product").toString().trim().toUpperCase(),
         description: it.name || "",
         quantity: Number(it.qty || 0),
@@ -394,7 +397,6 @@ export default function AddSalesModal({ onClose }) {
       };
     });
 
-    // include delivery notes and lightweight delivery images info (filename)
     const deliveryMeta = deliveryNotes.map(d => ({
       id: d.id,
       tankNumber: d.tankNumber,
@@ -410,9 +412,9 @@ export default function AddSalesModal({ onClose }) {
     return {
       id,
       invoice: invoiceVal,
-      revenueCode: SALES_ACCOUNT_CODE,   // revenue account (41000)
-      acCode: SALES_ACCOUNT_CODE,        // keep acCode as 41000 for compatibility/reports
-      customerCode,                      // receivable/customer account (12000+)
+      revenueCode: SALES_ACCOUNT_CODE,
+      acCode: SALES_ACCOUNT_CODE,
+      customerCode,
       customer: selectedCustomer ? selectedCustomer.name : (customerSearch || "Unknown"),
       totalAmount: amount,
       amount,
@@ -448,18 +450,15 @@ export default function AddSalesModal({ onClose }) {
     try {
       const hasFiles = images && images.some(i => i.file);
 
-      // debug log of payload going to backend
       console.log("SALE PAYLOAD (to backend)", salePayload, "hasFiles=", hasFiles);
 
       if (hasFiles) {
         const form = new FormData();
-        // backend expects "payload" (string) and files array (files)
         form.append("payload", JSON.stringify(salePayload));
         images.forEach((img) => {
           if (img.file) form.append("files", img.file, img.file.name);
         });
 
-        // axios will set the correct Content-Type for FormData
         const res = await API.post("/sales/", form);
         return res.data;
       } else {
@@ -467,25 +466,128 @@ export default function AddSalesModal({ onClose }) {
         return res.data;
       }
     } catch (err) {
-      // normalize axios error for existing error handling in your code
       const serverBody = err?.response?.data ?? err?.message ?? err;
       console.error("submitToBackend error", serverBody);
-      throw new Error((serverBody && typeof serverBody === "object") ? JSON.stringify(serverBody) : String(serverBody));
+      throw new Error(
+        (serverBody && typeof serverBody === "object")
+          ? JSON.stringify(serverBody)
+          : String(serverBody)
+      );
     }
   };
 
-  // --- handlers (preserve original flows) ---
+  const buildPreviewState = ({
+    res,
+    row,
+    paidAmountOverride,
+    calculationsOverride
+  }) => {
+    const resolvedId =
+      res?.id ??
+      res?.pk ??
+      res?.sale_id ??
+      res?.saleId ??
+      row?.id ??
+      null;
+
+    const resolvedInvoiceNumber =
+      res?.invoiceNumber ??
+      res?.invoice_number ??
+      res?.invoice ??
+      row?.invoice ??
+      invoiceNumber;
+
+    return {
+      ...res,
+      id: resolvedId,
+      pk: res?.pk ?? resolvedId,
+      saleId: res?.sale_id ?? res?.saleId ?? resolvedId,
+      invoiceId: res?.invoice_id ?? res?.invoiceId ?? resolvedId,
+      invoiceNumber: resolvedInvoiceNumber,
+      invoice_number: res?.invoice_number ?? resolvedInvoiceNumber,
+      invoice: res?.invoice ?? resolvedInvoiceNumber,
+      date: res?.date ?? date,
+      customer: selectedCustomer
+        ? {
+            id: selectedCustomer.id ?? null,
+            accCode: selectedCustomer.accCode,
+            name: selectedCustomer.name
+          }
+        : null,
+      items: res?.items ?? row.items,
+      discountAll,
+      paidAmount: paidAmountOverride,
+      calculations: calculationsOverride,
+      deliveryNotes: row.deliveryNotes,
+      deliveryImages: row.deliveryImages,
+      backendResponse: res
+    };
+  };
+
+  const goToInvoicePreview = (overrideType = null, forcePaid = false) => {
+    if (!incoming) invoiceCounter++;
+
+    const finalCalculations = forcePaid
+      ? { ...calculations, outstanding: 0 }
+      : calculations;
+
+    const finalPaidAmount = forcePaid
+      ? Number(finalCalculations.grandTotal || 0)
+      : Number(paidAmount || 0);
+
+    const row = buildSaleRow(finalPaidAmount);
+
+    const saleData = {
+      id: incoming?.id ?? incoming?.pk ?? row.id ?? null,
+      pk: incoming?.pk ?? incoming?.id ?? row.id ?? null,
+      saleId: incoming?.saleId ?? incoming?.sale_id ?? incoming?.id ?? row.id ?? null,
+      invoiceId: incoming?.invoiceId ?? incoming?.invoice_id ?? incoming?.id ?? row.id ?? null,
+      invoiceNumber: incoming?.invoiceNumber ?? incoming?.invoice_number ?? row.invoice,
+      invoice_number: incoming?.invoice_number ?? incoming?.invoiceNumber ?? row.invoice,
+      invoice: incoming?.invoice ?? incoming?.invoice_number ?? incoming?.invoiceNumber ?? row.invoice,
+      poNumber,
+      poDate,
+      depot,
+      driverName,
+      truckNo,
+      trailerNo,
+      customer: selectedCustomer
+        ? { id: selectedCustomer.id ?? null, accCode: selectedCustomer.accCode, name: selectedCustomer.name }
+        : null,
+      items,
+      discountAll,
+      paidAmount: finalPaidAmount,
+      calculations: finalCalculations,
+      date,
+      saleType: overrideType || saleType,
+      referenceNo,
+      deliveryNotes,
+      deliveryImages: deliveryImages.map(img => ({
+        name: img.name || (img.file && img.file.name) || null
+      }))
+    };
+
+    navigate("/admin/sales/invoice-preview", {
+      state: saleData,
+      replace: true,
+    });
+
+    return;
+  };
+
+  // --- handlers ---
   const handlePayNow = async (e) => {
     e?.preventDefault?.();
+
     const mappedCompartments = deliveryNotes.map(d => ({
       compartment_number: d.tankNumber,
       litres: Number(d.fuelQuantity || 0),
       upper_seal_number: d.upperSeal,
       lower_seal_number: d.lowerSeal
     }));
+
     const row = buildSaleRow(Number(calculations.grandTotal || 0));
 
-    // build backend payload (field names expected by typical DRF endpoints)
     const salePayload = {
       invoice_number: row.invoice,
       date,
@@ -512,27 +614,18 @@ export default function AddSalesModal({ onClose }) {
     try {
       console.log("SALE PAYLOAD", salePayload);
       const res = await submitToBackend(salePayload, deliveryImages);
+      console.log("CREATE SALE RESPONSE:", res);
 
-      // success — increment invoice counter (only after successful save)
       invoiceCounter++;
       persistToSession("sales_list", row);
 
-      // Build a full sale data object for preview — include backend response plus our UI metadata
-      const saleDataForPreview = {
-        ...res,
-        invoiceNumber: res.invoiceNumber ?? row.invoice,
-        date: res.date ?? date,
-        customer: selectedCustomer ? { accCode: selectedCustomer.accCode, name: selectedCustomer.name } : null,
-        items: res.items ?? row.items,
-        discountAll,
-        paidAmount: Number(calculations.grandTotal || 0),
-        calculations: { ...calculations, outstanding: 0 },
-        deliveryNotes: row.deliveryNotes,
-        deliveryImages: row.deliveryImages,
-        backendResponse: res
-      };
+      const saleDataForPreview = buildPreviewState({
+        res,
+        row,
+        paidAmountOverride: Number(calculations.grandTotal || 0),
+        calculationsOverride: { ...calculations, outstanding: 0 }
+      });
 
-      // Pass the full sale data to invoice-preview (no extra fetch required)
       navigate("/admin/sales/invoice-preview", {
         state: saleDataForPreview,
         replace: true,
@@ -546,13 +639,16 @@ export default function AddSalesModal({ onClose }) {
 
   const handleSaveAndCreateInvoice = async (e) => {
     e?.preventDefault?.();
+
     const mappedCompartments = deliveryNotes.map(d => ({
       compartment_number: d.tankNumber,
       litres: Number(d.fuelQuantity || 0),
       upper_seal_number: d.upperSeal,
       lower_seal_number: d.lowerSeal
     }));
+
     const row = buildSaleRow();
+
     const salePayload = {
       invoice_number: row.invoice,
       date,
@@ -579,23 +675,17 @@ export default function AddSalesModal({ onClose }) {
     try {
       console.log("SALE PAYLOAD", salePayload);
       const res = await submitToBackend(salePayload, deliveryImages);
+      console.log("CREATE SALE RESPONSE:", res);
 
       invoiceCounter++;
       persistToSession("sales_list", row);
 
-      const saleDataForPreview = {
-        ...res,
-        invoiceNumber: res.invoiceNumber ?? row.invoice,
-        date: res.date ?? date,
-        customer: selectedCustomer ? { accCode: selectedCustomer.accCode, name: selectedCustomer.name } : null,
-        items: res.items ?? row.items,
-        discountAll,
-        paidAmount: row.paid,
-        calculations,
-        deliveryNotes: row.deliveryNotes,
-        deliveryImages: row.deliveryImages,
-        backendResponse: res
-      };
+      const saleDataForPreview = buildPreviewState({
+        res,
+        row,
+        paidAmountOverride: row.paid,
+        calculationsOverride: calculations
+      });
 
       navigate("/admin/sales/invoice-preview", {
         state: saleDataForPreview,
@@ -610,13 +700,16 @@ export default function AddSalesModal({ onClose }) {
 
   const handleCreditSale = async (e) => {
     e?.preventDefault?.();
+
     const mappedCompartments = deliveryNotes.map(d => ({
       compartment_number: d.tankNumber,
       litres: Number(d.fuelQuantity || 0),
       upper_seal_number: d.upperSeal,
       lower_seal_number: d.lowerSeal
     }));
+
     const row = buildSaleRow(0);
+
     const salePayload = {
       invoice_number: row.invoice,
       date,
@@ -643,64 +736,27 @@ export default function AddSalesModal({ onClose }) {
     try {
       console.log("SALE PAYLOAD", salePayload);
       const res = await submitToBackend(salePayload, deliveryImages);
+      console.log("CREATE SALE RESPONSE:", res);
 
       invoiceCounter++;
       persistToSession("sales_list", row);
 
-      const saleDataForPreview = {
-        ...res,
-        invoiceNumber: res.invoiceNumber ?? row.invoice,
-        date: res.date ?? date,
-        customer: selectedCustomer ? { accCode: selectedCustomer.accCode, name: selectedCustomer.name } : null,
-        items: res.items ?? row.items,
-        discountAll,
-        paidAmount: 0,
-        calculations,
-        deliveryNotes: row.deliveryNotes,
-        deliveryImages: row.deliveryImages,
-        backendResponse: res
-      };
+      const saleDataForPreview = buildPreviewState({
+        res,
+        row,
+        paidAmountOverride: 0,
+        calculationsOverride: calculations
+      });
 
       navigate("/admin/sales/invoice-preview", {
         state: saleDataForPreview,
         replace: true,
       });
 
-      if (typeof onClose === "function") onClose();
+      return;
     } catch (err) {
       alert("Saving sale failed: " + (err.message || err));
     }
-  };
-
-  const goToInvoicePreview = (overrideType = null, forcePaid = false) => {
-    if (!incoming) invoiceCounter++;
-    const finalCalculations = forcePaid ? { ...calculations, outstanding: 0 } : calculations;
-    const finalPaidAmount = forcePaid ? Number(finalCalculations.grandTotal || 0) : paidAmount;
-    const saleData = {
-      invoiceNumber,
-      poNumber,
-      poDate,
-      depot,
-      driverName,
-      truckNo,
-      trailerNo,
-      customer: selectedCustomer ? { accCode: selectedCustomer.accCode, name: selectedCustomer.name } : null,
-      items,
-      discountAll,
-      paidAmount: finalPaidAmount,
-      calculations: finalCalculations,
-      date,
-      saleType: overrideType || saleType,
-      referenceNo,
-      deliveryNotes,
-      deliveryImages: deliveryImages.map(img => ({ name: img.name || (img.file && img.file.name) || null }))
-    };
-    // navigate with full saleData (no undefined `res`)
-    navigate("/admin/sales/invoice-preview", {
-      state: saleData
-    });
-
-    return;
   };
 
   return (
@@ -732,7 +788,6 @@ export default function AddSalesModal({ onClose }) {
         </div>
 
         <div className="addSales-content">
-          {/* TOP ROW */}
           <div className="erp-row top-row">
             <div className="erp-field">
               <label>Customer Name or Account Code *</label>
@@ -796,7 +851,11 @@ export default function AddSalesModal({ onClose }) {
               <label>Depot</label>
               <select value={depot} onChange={(e) => setDepot(e.target.value)}>
                 <option value="">Select Depot</option>
-                {depotSource.map(d => <option key={d.id || d.code || d.name} value={d.id || d.code || d.name}>{d.name || d.code}</option>)}
+                {depotSource.map(d => (
+                  <option key={d.id || d.code || d.name} value={d.id || d.code || d.name}>
+                    {d.name || d.code}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -804,7 +863,11 @@ export default function AddSalesModal({ onClose }) {
               <label>Driver Name</label>
               <select value={driverName} onChange={(e) => setDriverName(e.target.value)}>
                 <option value="">Select Driver</option>
-                {driverSource.map(d => <option key={d.id || d.name} value={d.name}>{d.name}</option>)}
+                {driverSource.map(d => (
+                  <option key={d.id || d.name} value={d.name}>
+                    {d.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -812,12 +875,11 @@ export default function AddSalesModal({ onClose }) {
               <label>Truck No</label>
               <select value={truckNo} onChange={(e) => setTruckNo(e.target.value)}>
                 <option value="">Select Truck</option>
-                {truckSource.map(t => 
-                  <option key={t.id} value={t.truck_number || t.truckNo}>
-                    {t.truck_number || t.truckNo}
+                {truckSource.map(t => (
+                  <option key={t.id} value={t.truck_number || t.truckNo || t.number}>
+                    {t.truck_number || t.truckNo || t.number}
                   </option>
-                )}
-
+                ))}
               </select>
             </div>
 
@@ -825,11 +887,11 @@ export default function AddSalesModal({ onClose }) {
               <label>Trailer No</label>
               <select value={trailerNo} onChange={(e) => setTrailerNo(e.target.value)}>
                 <option value="">Select Trailer</option>
-                {trailerSource.map(t => 
-                    <option key={t.id} value={t.trailer_number || t.trailerNo}>
-                      {t.trailer_number || t.trailerNo}
-                    </option>
-                  )}
+                {trailerSource.map(t => (
+                  <option key={t.id} value={t.trailer_number || t.trailerNo || t.number}>
+                    {t.trailer_number || t.trailerNo || t.number}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -839,7 +901,6 @@ export default function AddSalesModal({ onClose }) {
             </div>
           </div>
 
-          {/* TABLE (table-driven product & charges, add rows) */}
           <div className="erp-table-wrapper">
             <table className="erp-table">
               <thead>
@@ -871,12 +932,10 @@ export default function AddSalesModal({ onClose }) {
                           onChange={(e) => {
                             const selectedAcc = e.target.value;
 
-                            // STANDARDIZED lookup: compare to String(p.id ?? p.accCode)
                             const productMatch = productSource.find(
                               p => String(p.id ?? p.accCode) === selectedAcc
                             );
 
-                            // charges use accCode strings; coerce to string comparison
                             const chargeMatch = chargesDB.find(
                               c => String(c.accCode) === selectedAcc
                             );
@@ -885,7 +944,7 @@ export default function AddSalesModal({ onClose }) {
                               const code = String(productMatch.id ?? productMatch.accCode);
 
                               updateItem(idx, "productCode", code);
-                              updateItem(idx, "accCode", code); // backward compat
+                              updateItem(idx, "accCode", code);
                               updateItem(idx, "name", productMatch.name || productMatch.title || "");
                               updateItem(idx, "price", productMatch.price ?? productMatch.unit_price ?? 0);
                               updateItem(idx, "type", "product");
@@ -967,10 +1026,11 @@ export default function AddSalesModal({ onClose }) {
             <button type="button" className="erp-add-btn" onClick={addEmptyRow}>+ Add Row</button>
           </div>
 
-          {/* ========== DELIVERY COMPONENTS (NEW) ========== */}
           <div className="delivery-section" style={{ marginTop: 20 }}>
             <h3>Delivery Details</h3>
-            <p className="small-muted">Add delivery tank info & seals. You can add multiple delivery rows and attach delivery images (e.g. upper/lower seals photos).</p>
+            <p className="small-muted">
+              Add delivery tank info & seals. You can add multiple delivery rows and attach delivery images (e.g. upper/lower seals photos).
+            </p>
 
             <div className="delivery-table-wrapper">
               <table className="delivery-table" style={{ width: "100%", marginTop: 10 }}>
@@ -987,14 +1047,15 @@ export default function AddSalesModal({ onClose }) {
                   {deliveryNotes.map((d, i) => (
                     <tr key={d.id}>
                       <td>
-                        <input className="dlvinputs"
+                        <input
+                          className="dlvinputs"
                           value={d.tankNumber}
                           onChange={(e) => updateDeliveryRow(i, "tankNumber", e.target.value)}
                           placeholder="Room no. / Tank no."
                         />
                       </td>
                       <td>
-                        <input 
+                        <input
                           type="number"
                           min="0"
                           value={d.fuelQuantity}
@@ -1003,14 +1064,16 @@ export default function AddSalesModal({ onClose }) {
                         />
                       </td>
                       <td>
-                        <input className="dlvinputs"
+                        <input
+                          className="dlvinputs"
                           value={d.upperSeal}
                           onChange={(e) => updateDeliveryRow(i, "upperSeal", e.target.value)}
                           placeholder="ETCL 10340"
                         />
                       </td>
                       <td>
-                        <input className="dlvinputs"
+                        <input
+                          className="dlvinputs"
                           value={d.lowerSeal}
                           onChange={(e) => updateDeliveryRow(i, "lowerSeal", e.target.value)}
                           placeholder="ETCL 10686"
@@ -1035,18 +1098,23 @@ export default function AddSalesModal({ onClose }) {
               <div className="delivery-images-preview">
                 {deliveryImages.map((img, i) => (
                   <div key={i} style={{ display: "inline-block", marginRight: 8 }}>
-                    {img.url ? <img src={img.url} alt={img.name} style={{ width: 80, height: 60, objectFit: "cover" }} /> : <div style={{ width: 80, height: 60, background: "#eee" }} />}
+                    {img.url ? (
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        style={{ width: 80, height: 60, objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div style={{ width: 80, height: 60, background: "#eee" }} />
+                    )}
                     <div style={{ textAlign: "center", fontSize: 12 }}>{img.name}</div>
                     <button type="button" className="row-delete" onClick={() => removeDeliveryImage(i)}>✕</button>
                   </div>
                 ))}
               </div>
             </div>
-
           </div>
-          {/* ========== END DELIVERY SECTION ========== */}
 
-          {/* totals */}
           <div className="erp-bottom" style={{ marginTop: 16 }}>
             <div className="erp-left">
               <div className="erp-input-row">
@@ -1085,9 +1153,12 @@ export default function AddSalesModal({ onClose }) {
             <button type="button" className="btn-warning" onClick={handleCreditSale}>Credit Sale</button>
             <button type="button" className="btn-primary" onClick={handleSaveAndCreateInvoice}>Save & Create Invoice</button>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
+
+
+
+
