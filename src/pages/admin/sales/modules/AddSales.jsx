@@ -544,102 +544,102 @@ export default function AddSalesModal({ onClose }) {
     }
   };
 
- 
+  
 
   const handleSaveAndCreateInvoice = async (e) => {
-    e?.preventDefault?.();
+  e?.preventDefault?.();
 
-    const mappedCompartments = deliveryNotes.map(d => ({
-      compartment_number: d.tankNumber,
-      litres: Number(d.fuelQuantity || 0),
-      upper_seal_number: d.upperSeal,
-      lower_seal_number: d.lowerSeal
-    }));
+  const mappedCompartments = deliveryNotes.map(d => ({
+    compartment_number: d.tankNumber,
+    litres: Number(d.fuelQuantity || 0),
+    upper_seal_number: d.upperSeal,
+    lower_seal_number: d.lowerSeal
+  }));
 
-    const row = buildSaleRow();
+  const row = buildSaleRow();
 
-    const salePayload = {
-      invoice_number: row.invoice,
-      date,
-      customer: selectedCustomer?.id ?? selectedCustomer?.accCode ?? null,
-      po_number: row.poNumber || null,
-      po_date: row.poDate || null,
-      depot: row.depot || null,
-      driver_name: row.driverName || null,
-      truck_no: row.truckNo || null,
-      trailer_no: row.trailerNo || null,
-      reference_no: row.referenceNo || null,
-      total_amount: Number(calculations.grandTotal || 0),
-      subtotal: Number(calculations.subtotal || 0),
-      tax_amount: Number(calculations.totalTax || 0),
-      discount_amount: Number(calculations.discountAmount || 0),
-      paid_amount: Number(paidAmount || 0),
-      outstanding_amount: Number(calculations.outstanding || 0),
-      sale_type: saleType.toUpperCase(),
-      items: row.items,
-      compartments: mappedCompartments,
-      delivery_files: row.deliveryImages.map(f => f.name)
-    };
+  const salePayload = {
+    invoice_number: row.invoice,
+    date,
+    customer: selectedCustomer?.id ?? selectedCustomer?.accCode ?? null,
+    po_number: row.poNumber || null,
+    po_date: row.poDate || null,
+    depot: row.depot || null,
+    driver_name: row.driverName || null,
+    truck_no: row.truckNo || null,
+    trailer_no: row.trailerNo || null,
+    reference_no: row.referenceNo || null,
+    total_amount: Number(calculations.grandTotal || 0),
+    subtotal: Number(calculations.subtotal || 0),
+    tax_amount: Number(calculations.totalTax || 0),
+    discount_amount: Number(calculations.discountAmount || 0),
+    paid_amount: Number(paidAmount || 0),
+    outstanding_amount: Number(calculations.outstanding || 0),
+    sale_type: saleType.toUpperCase(),
+    items: row.items,
+    compartments: mappedCompartments,
+    delivery_files: row.deliveryImages.map(f => f.name)
+  };
 
   try {
     console.log("SALE PAYLOAD", salePayload);
 
-    // 1. Create sale
+    // 1. create sale
     const createRes = await submitToBackend(salePayload, deliveryImages);
     console.log("CREATE SALE RESPONSE:", createRes);
 
     invoiceCounter++;
     persistToSession("sales_list", row);
 
-    // 2. Get created invoice number
+    // 2. get created invoice number
     const createdInvoiceNumber =
-      createRes?.invoice_number ??
       createRes?.invoiceNumber ??
-      salePayload.invoice_number;
+      createRes?.invoice_number ??
+      row.invoice;
 
-    // 3. Refetch from sales list so we get the REAL saved sale with REAL id
-    const listRes = await API.get("/sales/");
-    const listData = listRes?.data;
+    // 3. fetch full invoice object the same way sales list preview gets it
+    let fullInvoiceRes = null;
 
-    const sales = Array.isArray(listData)
-      ? listData
-      : Array.isArray(listData?.results)
-      ? listData.results
-      : Array.isArray(listData?.sales)
-      ? listData.sales
-      : [];
+    try {
+      // chagua endpoint yako sahihi ya invoice preview hapa
+      // mfano wa kwanza:
+      const res = await API.get(`/sales/invoice-preview/?invoice_number=${encodeURIComponent(createdInvoiceNumber)}`);
+      fullInvoiceRes = res.data;
+      console.log("FULL INVOICE RESPONSE:", fullInvoiceRes);
+    } catch (err) {
+      console.error("FULL INVOICE FETCH FAILED:", err?.response?.data || err.message);
+    }
 
-    const freshSale =
-      sales.find(
-        (s) =>
-          s?.invoice_number === createdInvoiceNumber ||
-          s?.invoiceNumber === createdInvoiceNumber ||
-          s?.invoice === createdInvoiceNumber
-      ) || null;
-
-    console.log("FRESH SALE FROM LIST:", freshSale);
-
+    // 4. fallback kama invoice endpoint haipo
     const saleDataForPreview = {
-      ...(freshSale || createRes),
-      date: (freshSale || createRes)?.date ?? date,
+      ...(fullInvoiceRes || createRes),
+      invoiceNumber:
+        fullInvoiceRes?.invoiceNumber ??
+        fullInvoiceRes?.invoice_number ??
+        createRes?.invoiceNumber ??
+        createRes?.invoice_number ??
+        row.invoice,
+      date: fullInvoiceRes?.date ?? createRes?.date ?? date,
       customer: selectedCustomer
         ? { accCode: selectedCustomer.accCode, name: selectedCustomer.name }
         : null,
-      items: (freshSale || createRes)?.items ?? row.items,
-      discountAll,
-      paidAmount: row.paid,
-      calculations,
-      deliveryNotes: row.deliveryNotes,
+      items: fullInvoiceRes?.items ?? createRes?.items ?? row.items,
+      deliveryNotes: fullInvoiceRes?.rooms ?? row.deliveryNotes,
       deliveryImages: row.deliveryImages,
+      discountAll: fullInvoiceRes?.discountAll ?? discountAll,
+      paidAmount: fullInvoiceRes?.paidAmount ?? row.paid,
+      calculations: fullInvoiceRes?.calculations ?? calculations,
       backendResponse: createRes
     };
+
+    console.log("FINAL PREVIEW DATA:", saleDataForPreview);
 
     navigate("/admin/sales/invoice-preview", {
       state: saleDataForPreview,
       replace: true,
     });
 
-    return;
+    if (typeof onClose === "function") onClose();
   } catch (err) {
     alert("Saving sale failed: " + (err.message || err));
   }
