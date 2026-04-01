@@ -599,7 +599,6 @@ export default function AddSalesModal({ onClose }) {
 
       navigate("/admin/sales/invoice-preview", {
         state: saleDataForPreview,
-        replace: true,
       });
 
       if (typeof onClose === "function") onClose();
