@@ -635,7 +635,7 @@ export default function AddSalesModal({ onClose }) {
     console.log("FINAL PREVIEW DATA:", saleDataForPreview);
 
     navigate("/admin/sales/invoice-preview", {
-      state: saleDataForPreview,
+      state:{ id: freshSale.id},
       replace: true,
     });
 
