@@ -534,10 +534,11 @@ export default function AddSalesModal({ onClose }) {
 
       // Pass the full sale data to invoice-preview (no extra fetch required)
       navigate("/admin/sales/invoice-preview", {
-        state: saleDataForPreview
+        state: saleDataForPreview,
+        replace: true,
       });
 
-      if (typeof onClose === "function") onClose();
+      return;
     } catch (err) {
       alert("Saving sale failed: " + (err.message || err));
     }
@@ -597,10 +598,11 @@ export default function AddSalesModal({ onClose }) {
       };
 
       navigate("/admin/sales/invoice-preview", {
-        state: saleDataForPreview
+        state: saleDataForPreview,
+        replace: true,
       });
 
-      if (typeof onClose === "function") onClose();
+      return;
     } catch (err) {
       alert("Saving sale failed: " + (err.message || err));
     }
@@ -660,7 +662,8 @@ export default function AddSalesModal({ onClose }) {
       };
 
       navigate("/admin/sales/invoice-preview", {
-        state: saleDataForPreview
+        state: saleDataForPreview,
+        replace: true,
       });
 
       if (typeof onClose === "function") onClose();
