@@ -538,7 +538,7 @@ export default function AddSalesModal({ onClose }) {
         replace: true,
       });
 
-      return;
+      if (typeof onClose === "function") onClose();
     } catch (err) {
       alert("Saving sale failed: " + (err.message || err));
     }
@@ -602,7 +602,7 @@ export default function AddSalesModal({ onClose }) {
         replace: true,
       });
 
-      return;
+      if (typeof onClose === "function") onClose();
     } catch (err) {
       alert("Saving sale failed: " + (err.message || err));
     }
