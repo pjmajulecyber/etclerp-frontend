@@ -700,7 +700,7 @@ export default function AddSalesModal({ onClose }) {
       state: saleData
     });
 
-    if (typeof onClose === "function") onClose();
+    return;
   };
 
   return (
