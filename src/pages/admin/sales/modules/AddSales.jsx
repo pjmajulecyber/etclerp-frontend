@@ -547,103 +547,89 @@ export default function AddSalesModal({ onClose }) {
   
 
   const handleSaveAndCreateInvoice = async (e) => {
-  e?.preventDefault?.();
-
-  const mappedCompartments = deliveryNotes.map(d => ({
-    compartment_number: d.tankNumber,
-    litres: Number(d.fuelQuantity || 0),
-    upper_seal_number: d.upperSeal,
-    lower_seal_number: d.lowerSeal
-  }));
-
-  const row = buildSaleRow();
-
-  const salePayload = {
-    invoice_number: row.invoice,
-    date,
-    customer: selectedCustomer?.id ?? selectedCustomer?.accCode ?? null,
-    po_number: row.poNumber || null,
-    po_date: row.poDate || null,
-    depot: row.depot || null,
-    driver_name: row.driverName || null,
-    truck_no: row.truckNo || null,
-    trailer_no: row.trailerNo || null,
-    reference_no: row.referenceNo || null,
-    total_amount: Number(calculations.grandTotal || 0),
-    subtotal: Number(calculations.subtotal || 0),
-    tax_amount: Number(calculations.totalTax || 0),
-    discount_amount: Number(calculations.discountAmount || 0),
-    paid_amount: Number(paidAmount || 0),
-    outstanding_amount: Number(calculations.outstanding || 0),
-    sale_type: saleType.toUpperCase(),
-    items: row.items,
-    compartments: mappedCompartments,
-    delivery_files: row.deliveryImages.map(f => f.name)
-  };
-
-  try {
-    console.log("SALE PAYLOAD", salePayload);
-
-    // 1. create sale
-    const createRes = await submitToBackend(salePayload, deliveryImages);
-    console.log("CREATE SALE RESPONSE:", createRes);
-
-    invoiceCounter++;
-    persistToSession("sales_list", row);
-
-    // 2. get created invoice number
-    const createdInvoiceNumber =
-      createRes?.invoiceNumber ??
-      createRes?.invoice_number ??
-      row.invoice;
-
-    // 3. fetch full invoice object the same way sales list preview gets it
-    let fullInvoiceRes = null;
-
-    try {
-      // chagua endpoint yako sahihi ya invoice preview hapa
-      // mfano wa kwanza:
-      const res = await API.get(`/sales/invoice-preview/?invoice_number=${encodeURIComponent(createdInvoiceNumber)}`);
-      fullInvoiceRes = res.data;
-      console.log("FULL INVOICE RESPONSE:", fullInvoiceRes);
-    } catch (err) {
-      console.error("FULL INVOICE FETCH FAILED:", err?.response?.data || err.message);
-    }
-
-    // 4. fallback kama invoice endpoint haipo
-    const saleDataForPreview = {
-      ...(fullInvoiceRes || createRes),
-      invoiceNumber:
-        fullInvoiceRes?.invoiceNumber ??
-        fullInvoiceRes?.invoice_number ??
-        createRes?.invoiceNumber ??
-        createRes?.invoice_number ??
-        row.invoice,
-      date: fullInvoiceRes?.date ?? createRes?.date ?? date,
-      customer: selectedCustomer
-        ? { accCode: selectedCustomer.accCode, name: selectedCustomer.name }
-        : null,
-      items: fullInvoiceRes?.items ?? createRes?.items ?? row.items,
-      deliveryNotes: fullInvoiceRes?.rooms ?? row.deliveryNotes,
-      deliveryImages: row.deliveryImages,
-      discountAll: fullInvoiceRes?.discountAll ?? discountAll,
-      paidAmount: fullInvoiceRes?.paidAmount ?? row.paid,
-      calculations: fullInvoiceRes?.calculations ?? calculations,
-      backendResponse: createRes
+    e?.preventDefault?.();
+  
+    const mappedCompartments = deliveryNotes.map(d => ({
+      compartment_number: d.tankNumber,
+      litres: Number(d.fuelQuantity || 0),
+      upper_seal_number: d.upperSeal,
+      lower_seal_number: d.lowerSeal
+    }));
+  
+    const row = buildSaleRow();
+  
+    const salePayload = {
+      invoice_number: row.invoice,
+      date,
+      customer: selectedCustomer?.id ?? selectedCustomer?.accCode ?? null,
+      po_number: row.poNumber || null,
+      po_date: row.poDate || null,
+      depot: row.depot || null,
+      driver_name: row.driverName || null,
+      truck_no: row.truckNo || null,
+      trailer_no: row.trailerNo || null,
+      reference_no: row.referenceNo || null,
+      total_amount: Number(calculations.grandTotal || 0),
+      subtotal: Number(calculations.subtotal || 0),
+      tax_amount: Number(calculations.totalTax || 0),
+      discount_amount: Number(calculations.discountAmount || 0),
+      paid_amount: Number(paidAmount || 0),
+      outstanding_amount: Number(calculations.outstanding || 0),
+      sale_type: saleType.toUpperCase(),
+      items: row.items,
+      compartments: mappedCompartments,
+      delivery_files: row.deliveryImages.map(f => f.name)
     };
-
-    console.log("FINAL PREVIEW DATA:", saleDataForPreview);
-
-    navigate("/admin/sales/invoice-preview", {
-      state:{ id: freshSale.id},
-      replace: true,
-    });
-
-    if (typeof onClose === "function") onClose();
-  } catch (err) {
-    alert("Saving sale failed: " + (err.message || err));
-  }
-};
+  
+    try {
+      console.log("SALE PAYLOAD", salePayload);
+  
+      const createRes = await submitToBackend(salePayload, deliveryImages);
+      console.log("CREATE SALE RESPONSE:", createRes);
+  
+      invoiceCounter++;
+      persistToSession("sales_list", row);
+  
+      const createdInvoiceNumber =
+        createRes?.invoice ??
+        createRes?.invoice_number ??
+        createRes?.invoiceNumber ??
+        row.invoice;
+  
+      const listRes = await API.get("/sales/");
+      const data = listRes?.data;
+  
+      const sales = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.results)
+        ? data.results
+        : Array.isArray(data?.sales)
+        ? data.sales
+        : [];
+  
+      const freshSale = sales.find((s) =>
+        s?.invoice === createdInvoiceNumber ||
+        s?.invoice_number === createdInvoiceNumber ||
+        s?.invoiceNumber === createdInvoiceNumber
+      );
+  
+      console.log("FRESH SALE FROM LIST:", freshSale);
+  
+      if (!freshSale || !freshSale.id) {
+        alert("Sale saved, but failed to get the new sale ID for invoice preview.");
+        return;
+      }
+  
+      navigate("/admin/sales/invoice-preview", {
+        state: { id: freshSale.id },
+        replace: true,
+      });
+  
+      return;
+    } catch (err) {
+      alert("Saving sale failed: " + (err.message || err));
+    }
+  };
 
   const handleCreditSale = async (e) => {
     e?.preventDefault?.();
