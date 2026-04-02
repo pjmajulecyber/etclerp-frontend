@@ -186,7 +186,7 @@ export default function SalesList() {
   const [paymentSale, setPaymentSale] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
-  const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [paymentNote, setPaymentNote] = useState("");
   const [submittingPayment, setSubmittingPayment] = useState(false);
 
@@ -194,7 +194,7 @@ export default function SalesList() {
     setPaymentSale(sale);
     setPaymentAmount(sale?.outstanding || 0);
     setPaymentDate(new Date().toISOString().slice(0, 10));
-    setPaymentMethod("Cash");
+    setPaymentMethod("CASH");
     setPaymentNote("");
     setPaymentModalOpen(true);
   };
@@ -238,7 +238,11 @@ export default function SalesList() {
           if (s.id !== paymentSale.id) return s;
 
           const newPaid = Number(s.paid || 0) + paidVal;
-          const newOutstanding = Math.max(0, Number(s.amount || 0) - newPaid);
+          const newOutstanding = Math.max(
+            0,
+            Number(s.amount || 0) - newPaid
+          );
+
           const newStatus =
             newPaid >= Number(s.amount || 0)
               ? "Paid"
@@ -255,8 +259,8 @@ export default function SalesList() {
               payment_date: paymentDate,
               amount: paidVal,
               payment_method: paymentMethod,
-              notes: paymentNote
-            }
+              notes: paymentNote,
+            },
           };
         });
 
@@ -656,9 +660,10 @@ export default function SalesList() {
               <label>
                 Method
                 <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-                  <option>Cash</option>
-                  <option>Bank</option>
-                  <option>Mobile Money</option>
+                  <option value="CASH">Cash</option>
+                  <option value="BANK">Bank Transfer</option>
+                  <option value="MOBILE">Mobile Money</option>
+                  <option value="CHEQUE">Cheque</option>
                 </select>
               </label>
 
