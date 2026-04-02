@@ -1,5 +1,3 @@
-
-
 // src/pages/admin/sales/modules/InvoicePreview.jsx
 import "./InvoicePreview.css";
 import React, { useRef, useEffect, useState } from "react";

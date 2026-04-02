@@ -111,7 +111,7 @@ export default function AddSalesModal({ onClose }) {
   const [trucksAPI, setTrucksAPI] = useState([]);               // /api/logistics/trucks/
   
 
-  const invoiceNumber = incoming?.invoiceNumber || `INV-${Date.now()}`;
+  const invoiceNumber = incoming?.invoiceNumber || "Auto-generated on save"; 
 
   useEffect(() => {
     const onKey = (e) => {
