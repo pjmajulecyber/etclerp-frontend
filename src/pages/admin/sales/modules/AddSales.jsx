@@ -123,7 +123,7 @@ export default function AddSalesModal({ onClose }) {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "auto";
       // revoke object URLs
-      deliveryImages.forEach(img => (img.url && URL.revokeObjectURL(img.url)));
+      deliveryImages.forEach(img => (img.url && URL.revokeObjectURL(img.url))); 
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -372,7 +372,8 @@ export default function AddSalesModal({ onClose }) {
     const amount = Number(calculations.grandTotal || 0);
     const paid = Number(paidOverride !== null ? paidOverride : (paidAmount || 0));
     const outstanding = Math.max(0, amount - paid);
-    const invoiceVal = invoiceNumber.includes("INV-2026-") ? invoiceNumber : `INV-2026-${id}`;
+    const invoiceVal = incoming?.invoiceNumber ||incoming?.invoice_number || "";
+
 
     // customerCode should come from selectedCustomer.accCode (if selected)
     const customerCode = selectedCustomer?.accCode || "";
@@ -487,7 +488,7 @@ export default function AddSalesModal({ onClose }) {
 
     // build backend payload (field names expected by typical DRF endpoints)
     const salePayload = {
-      invoice_number: row.invoice,
+      
       date,
       customer: selectedCustomer?.id ?? selectedCustomer?.accCode ?? null,
       po_number: row.poNumber || null,
@@ -559,7 +560,7 @@ export default function AddSalesModal({ onClose }) {
     const row = buildSaleRow();
   
     const salePayload = {
-      invoice_number: row.invoice,
+      
       date,
       customer: selectedCustomer?.id ?? selectedCustomer?.accCode ?? null,
       po_number: row.poNumber || null,
