@@ -1,13 +1,11 @@
 // src/pages/admin/Sales/SalesList.jsx
 import "./SalesList.css";
-import { NavLink } from "react-router-dom";
-import { useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiDollarSign } from "react-icons/fi";
+import API from "../../../services/api";
 
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || ""; 
-const ACCOUNT_CODE = "41000"; // <-- constant ac code for all sales
+const ACCOUNT_CODE = "41000";
 
 const customers = [
   "Tanzania Breweries (TBL)",
@@ -23,6 +21,7 @@ const customers = [
 const salesData = Array.from({ length: 50 }, (_, i) => {
   const amount = 100000 + i * 15000;
   let paid;
+
   if (i % 3 === 0) {
     paid = amount;
   } else if (i % 3 === 1) {
@@ -30,9 +29,10 @@ const salesData = Array.from({ length: 50 }, (_, i) => {
   } else {
     paid = Math.floor(amount * 0.6);
   }
+
   return {
     id: i + 1,
-    acCode: ACCOUNT_CODE, // use constant here
+    acCode: ACCOUNT_CODE,
     invoice: `INV${(i + 1).toString().padStart(4, "0")}`,
     customer: customers[i % customers.length],
     amount,
@@ -45,48 +45,75 @@ const salesData = Array.from({ length: 50 }, (_, i) => {
   };
 });
 
+const sortSalesNewestFirst = (rows = []) => {
+  return [...rows].sort((a, b) => {
+    const aId = Number(a?.id || 0);
+    const bId = Number(b?.id || 0);
+
+    if (bId !== aId) return bId - aId;
+
+    const aDate = new Date(a?.date || 0).getTime();
+    const bDate = new Date(b?.date || 0).getTime();
+
+    return bDate - aDate;
+  });
+};
+
 export default function SalesList() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Normalize stored sales to ensure acCode = ACCOUNT_CODE
   const [sales, setSales] = useState(() => {
     try {
       const stored = sessionStorage.getItem("sales_list");
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Normalize any existing entries' acCode to constant
-        return parsed.map(p => ({ ...p, acCode: ACCOUNT_CODE }));
+        const normalized = parsed.map((p) => ({ ...p, acCode: ACCOUNT_CODE }));
+        return sortSalesNewestFirst(normalized);
       }
     } catch (e) {
-      // ignore parse errors and fallback to default mock
+      console.error("Failed to parse sales_list from sessionStorage:", e);
     }
-    return salesData;
+
+    return sortSalesNewestFirst(salesData);
   });
 
-  // Always persist normalized acCode when saving
   useEffect(() => {
     try {
-      const normalized = sales.map(s => ({ ...s, acCode: ACCOUNT_CODE }));
+      const normalized = sales.map((s) => ({ ...s, acCode: ACCOUNT_CODE }));
       sessionStorage.setItem("sales_list", JSON.stringify(normalized));
-    } catch (e) {}
+    } catch (e) {
+      console.error("Failed to persist sales_list:", e);
+    }
   }, [sales]);
 
   useEffect(() => {
     const state = location.state || {};
     const candidate =
       state.newSale || state.createdSale || state.sale || state.addedSale;
+
     if (candidate && typeof candidate === "object") {
-      const id = Date.now();
-      const amount = Number(candidate.amount || candidate.total || 0);
-      const paid = Number(candidate.paid || 0);
+      const id = Number(candidate.id || Date.now());
+      const amount = Number(candidate.amount || candidate.total || candidate.totalAmount || 0);
+      const paid = Number(candidate.paid || candidate.paidAmount || 0);
       const outstanding = Math.max(0, amount - paid);
-      const year = candidate.year || new Date(candidate.date || Date.now()).getFullYear().toString();
+      const year =
+        candidate.year ||
+        new Date(candidate.date || Date.now()).getFullYear().toString();
+
       const newRow = {
         id,
-        acCode: ACCOUNT_CODE, // enforce constant
-        invoice: candidate.invoice || `INV${String(id).slice(-6)}`,
-        customer: candidate.customer || candidate.customerName || "Unknown",
+        acCode: ACCOUNT_CODE,
+        invoice:
+          candidate.invoice ||
+          candidate.invoiceNumber ||
+          candidate.invoice_number ||
+          `INV${String(id).slice(-6)}`,
+        customer:
+          candidate.customer?.name ||
+          candidate.customer ||
+          candidate.customerName ||
+          "Unknown",
         amount,
         paid,
         outstanding,
@@ -95,55 +122,52 @@ export default function SalesList() {
         product: candidate.product || "Misc",
         status: paid >= amount ? "Paid" : paid === 0 ? "Unpaid" : "Partial"
       };
-      setSales(prev => [newRow, ...prev]);
+
+      setSales((prev) => sortSalesNewestFirst([newRow, ...prev]));
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
 
   useEffect(() => {
-
     async function loadSales() {
       try {
-  
-        const res = await fetch(`${API_BASE}/api/sales/`, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("access")
-          }
-        });
+        const res = await API.get("/sales/");
+        const data = res?.data;
 
-        if (!res.ok) {
-          throw new Error(`Failed to load sales: ${res.status}`);
-        }        
-  
-        const data = await res.json();
-  
-        if (data.results) {
-  
-          const mapped = data.results.map(s => ({
-            id: s.id,
-            acCode: s.acCode || ACCOUNT_CODE,
-            invoice: s.invoice,
-            customer: s.customer,
-            amount: Number(s.amount || 0),
-            paid: Number(s.paid || 0),
-            outstanding: Number(s.outstanding || 0),
-            year: new Date(s.date).getFullYear().toString(),
-            date: s.date,
-            product: s.product || "HFO",
-            status: s.status || "Unpaid"
-          }));
-  
-          setSales(mapped);
-  
-        }
-  
+        const rows = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.results)
+          ? data.results
+          : Array.isArray(data?.sales)
+          ? data.sales
+          : [];
+
+        const mapped = rows.map((s) => ({
+          id: s.id,
+          acCode: s.acCode || ACCOUNT_CODE,
+          invoice: s.invoice || s.invoice_number || s.invoiceNumber || "",
+          customer:
+            s.customer?.name ||
+            s.customer_name ||
+            s.customer ||
+            "Unknown",
+          amount: Number(s.amount || s.total_amount || 0),
+          paid: Number(s.paid || s.paid_amount || 0),
+          outstanding: Number(s.outstanding || s.outstanding_amount || 0),
+          year: new Date(s.date).getFullYear().toString(),
+          date: s.date,
+          product: s.product || "HFO",
+          status: s.status || "Unpaid",
+          raw: s
+        }));
+
+        setSales(sortSalesNewestFirst(mapped));
       } catch (err) {
-        console.error("Failed to load sales:", err);
+        console.error("Failed to load sales:", err?.response?.data || err.message);
       }
     }
-  
+
     loadSales();
-  
   }, []);
 
   const [acCode, setAcCode] = useState("");
@@ -164,6 +188,7 @@ export default function SalesList() {
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [paymentNote, setPaymentNote] = useState("");
+  const [submittingPayment, setSubmittingPayment] = useState(false);
 
   const openPaymentModal = (sale) => {
     setPaymentSale(sale);
@@ -177,85 +202,129 @@ export default function SalesList() {
   const closePaymentModal = () => {
     setPaymentModalOpen(false);
     setPaymentSale(null);
+    setSubmittingPayment(false);
   };
 
-  const submitPayment = (e) => {
+  const submitPayment = async (e) => {
     e.preventDefault();
     if (!paymentSale) return;
+
     const paidVal = Number(paymentAmount || 0);
+
     if (paidVal <= 0) {
       alert("Enter valid payment amount.");
       return;
     }
-    setSales(prev => {
-      const copy = prev.map(s => {
-        if (s.id !== paymentSale.id) return s;
-        const newPaid = Number(s.paid || 0) + paidVal;
-        const newOutstanding = Math.max(0, Number(s.amount || 0) - newPaid);
-        const newStatus = newPaid >= Number(s.amount || 0) ? "Paid" : newPaid === 0 ? "Unpaid" : "Partial";
-        return {
-          ...s,
-          paid: newPaid,
-          outstanding: newOutstanding,
-          status: newStatus,
-          lastPayment: { date: paymentDate, amount: paidVal, method: paymentMethod, note: paymentNote }
-        };
+
+    setSubmittingPayment(true);
+
+    try {
+      const payload = {
+        sale: paymentSale.id,
+        amount: paidVal,
+        payment_method: paymentMethod,
+        reference_number: "",
+        payment_date: paymentDate,
+        notes: paymentNote || ""
+      };
+
+      console.log("PAYMENT PAYLOAD:", payload);
+
+      const res = await API.post("/payments/", payload);
+      console.log("PAYMENT RESPONSE:", res.data);
+
+      setSales((prev) => {
+        const copy = prev.map((s) => {
+          if (s.id !== paymentSale.id) return s;
+
+          const newPaid = Number(s.paid || 0) + paidVal;
+          const newOutstanding = Math.max(0, Number(s.amount || 0) - newPaid);
+          const newStatus =
+            newPaid >= Number(s.amount || 0)
+              ? "Paid"
+              : newPaid === 0
+              ? "Unpaid"
+              : "Partial";
+
+          return {
+            ...s,
+            paid: newPaid,
+            outstanding: newOutstanding,
+            status: newStatus,
+            lastPayment: {
+              payment_date: paymentDate,
+              amount: paidVal,
+              payment_method: paymentMethod,
+              notes: paymentNote
+            }
+          };
+        });
+
+        try {
+          const normalized = copy.map((s) => ({ ...s, acCode: ACCOUNT_CODE }));
+          sessionStorage.setItem("sales_list", JSON.stringify(normalized));
+        } catch (e) {
+          console.error("Failed to update sessionStorage after payment:", e);
+        }
+
+        return sortSalesNewestFirst(copy);
       });
-      try {
-        const normalized = copy.map(s => ({ ...s, acCode: ACCOUNT_CODE }));
-        sessionStorage.setItem("sales_list", JSON.stringify(normalized));
-      } catch (e) {}
-      return copy;
-    });
-    closePaymentModal();
+
+      closePaymentModal();
+    } catch (err) {
+      console.error("Payment failed:", err?.response?.data || err.message);
+      alert(
+        "Payment failed: " +
+          (
+            err?.response?.data?.detail ||
+            JSON.stringify(err?.response?.data) ||
+            err.message
+          )
+      );
+      setSubmittingPayment(false);
+    }
   };
 
   const summary = useMemo(() => {
-    const filtered = sales.filter(s => s.year === summaryYear);
+    const filtered = sales.filter((s) => s.year === summaryYear);
     return {
       totalSales: filtered.reduce((a, b) => a + (Number(b.amount) || 0), 0),
       totalDue: filtered.reduce((a, b) => a + (Number(b.outstanding) || 0), 0),
       invoices: filtered.length,
-      overdue: filtered.filter(s => (Number(s.outstanding) || 0) > 0).length
+      overdue: filtered.filter((s) => (Number(s.outstanding) || 0) > 0).length
     };
   }, [summaryYear, summaryRange, sales]);
 
-  // --------- UPDATED: tokenized customer matching (each token must match name OR acCode) ----------
   const filteredTable = useMemo(() => {
     const codeFilter = (acCode || "").trim().toLowerCase();
     const invoiceFilter = (invoice || "").trim().toLowerCase();
     const searchFilter = (search || "").trim().toLowerCase();
     const yearFilter = tableYear;
 
-    // tokenized customer input: split on whitespace, ignore empty tokens
     const customerInput = (customer || "").trim().toLowerCase();
     const customerTokens = customerInput ? customerInput.split(/\s+/).filter(Boolean) : [];
 
-    return sales.filter(s => {
-      // Year filter
+    return sales.filter((s) => {
       if (yearFilter !== "All" && s.year !== yearFilter) return false;
 
-      // AC Code filter (simple substring on acCode)
-      if (codeFilter && !((s.acCode || "").toLowerCase().includes(codeFilter))) return false;
+      if (codeFilter && !String(s.acCode || "").toLowerCase().includes(codeFilter)) return false;
 
-      // Invoice filter
-      if (invoiceFilter && !((s.invoice || "").toLowerCase().includes(invoiceFilter))) return false;
+      if (invoiceFilter && !String(s.invoice || "").toLowerCase().includes(invoiceFilter)) return false;
 
-      // Customer tokens: every token must match either customer name OR acCode
       if (customerTokens.length > 0) {
-        const name = (s.customer || "").toLowerCase();
-        const ac = (s.acCode || "").toLowerCase();
-        const allTokensMatch = customerTokens.every(tok => name.includes(tok) || ac.includes(tok));
+        const name = String(s.customer || "").toLowerCase();
+        const ac = String(s.acCode || "").toLowerCase();
+        const allTokensMatch = customerTokens.every(
+          (tok) => name.includes(tok) || ac.includes(tok)
+        );
         if (!allTokensMatch) return false;
       }
 
-      // Global search (falls back to JSON search)
       if (searchFilter && !JSON.stringify(s).toLowerCase().includes(searchFilter)) return false;
 
       return true;
     });
   }, [acCode, invoice, customer, tableYear, search, sales]);
-  // -----------------------------------------------------------------------------------------------
 
   const totalPages = Math.max(1, Math.ceil(filteredTable.length / rowsPerPage));
 
@@ -279,29 +348,11 @@ export default function SalesList() {
   );
 
   const goToInvoicePreview = (row) => {
-    const saleData = {
-      invoiceNumber: row.invoice,
-      customer: { code: row.acCode, name: row.customer },
-      items: row.items || [{ code: "", name: row.product, price: Number(row.amount || 0), qty: 1 }],
-      discountAll: row.discountAll || 0,
-      paidAmount: Number(row.paid || 0),
-      calculations: {
-        subtotal: Number(row.amount || 0),
-        totalTax: 0,
-        discountAmount: 0,
-        grandTotal: Number(row.amount || 0),
-        outstanding: Number(row.outstanding || 0)
-      },
-      date: row.date,
-      saleType: row.saleType || "Final",
-      referenceNo: row.acCode
-    };
     navigate("/admin/sales/invoice-preview", {
       state: { id: row.id }
     });
   };
-  
-  
+
   return (
     <div className="salesList-page">
       <div className="SalesListSum-wrapper">
@@ -325,7 +376,7 @@ export default function SalesList() {
         <div className="salesList-summaryFilter">
           <select
             value={summaryYear}
-            onChange={e => setSummaryYear(e.target.value)}
+            onChange={(e) => setSummaryYear(e.target.value)}
             className="salesListCard-select"
           >
             <option value="2026">2026</option>
@@ -334,7 +385,7 @@ export default function SalesList() {
 
           <select
             value={summaryRange}
-            onChange={e => setSummaryRange(e.target.value)}
+            onChange={(e) => setSummaryRange(e.target.value)}
             className="salesListCardMonth-select"
           >
             <option value="Today">Today</option>
@@ -361,21 +412,33 @@ export default function SalesList() {
       </div>
 
       <div className="salesList-tabs">
-        <NavLink to="/admin/sales/list" className={({ isActive }) =>
-          isActive ? "salesList-tab active" : "salesList-tab"
-        }>Sales Order</NavLink>
+        <NavLink
+          to="/admin/sales/list"
+          className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
+        >
+          Sales Order
+        </NavLink>
 
-        <NavLink to="/admin/sales/invoice" className={({ isActive }) =>
-          isActive ? "salesList-tab active" : "salesList-tab"
-        }>Invoice</NavLink>
+        <NavLink
+          to="/admin/sales/invoice"
+          className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
+        >
+          Invoice
+        </NavLink>
 
-        <NavLink to="/admin/sales/quotation" className={({ isActive }) =>
-          isActive ? "salesList-tab active" : "salesList-tab"
-        }>Quotation</NavLink>
+        <NavLink
+          to="/admin/sales/quotation"
+          className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
+        >
+          Quotation
+        </NavLink>
 
-        <NavLink to="/admin/sales/overdue" className={({ isActive }) =>
-          isActive ? "salesList-tab active" : "salesList-tab"
-        }>Overdue</NavLink>
+        <NavLink
+          to="/admin/sales/overdue"
+          className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
+        >
+          Overdue
+        </NavLink>
       </div>
 
       <div className="salesList-tableCard">
@@ -384,27 +447,27 @@ export default function SalesList() {
             className="salesList-input"
             placeholder="AC Code"
             value={acCode}
-            onChange={e => setAcCode(e.target.value)}
+            onChange={(e) => setAcCode(e.target.value)}
           />
 
           <input
             className="salesList-input"
             placeholder="Invoice Number"
             value={invoice}
-            onChange={e => setInvoice(e.target.value)}
+            onChange={(e) => setInvoice(e.target.value)}
           />
 
           <input
             className="salesList-input"
             placeholder="Customer Name or Code (e.g. '12000 shanta')"
             value={customer}
-            onChange={e => setCustomer(e.target.value)}
+            onChange={(e) => setCustomer(e.target.value)}
           />
 
           <select
             className="salesList-select"
             value={tableYear}
-            onChange={e => setTableYear(e.target.value)}
+            onChange={(e) => setTableYear(e.target.value)}
           >
             <option value="All">All Years</option>
             <option value="2026">2026</option>
@@ -416,16 +479,19 @@ export default function SalesList() {
               className="salesList-btn salesList-btn-pdf"
               onClick={() => {
                 const csv = [
-                  ["Date","Code","Invoice","Customer","Product","Amount","Paid","Outstanding"].join(","),
-                  ...filteredTable.map(r =>
-                    [r.date, r.acCode, r.invoice, r.customer, r.product, r.amount, r.paid, r.outstanding].map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")
+                  ["Date", "Code", "Invoice", "Customer", "Product", "Amount", "Paid", "Outstanding"].join(","),
+                  ...filteredTable.map((r) =>
+                    [r.date, r.acCode, r.invoice, r.customer, r.product, r.amount, r.paid, r.outstanding]
+                      .map((c) => `"${String(c).replace(/"/g, '""')}"`)
+                      .join(",")
                   )
                 ].join("\n");
+
                 const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `sales-export-${new Date().toISOString().slice(0,10)}.csv`;
+                a.download = `sales-export-${new Date().toISOString().slice(0, 10)}.csv`;
                 a.click();
                 URL.revokeObjectURL(url);
               }}
@@ -437,16 +503,19 @@ export default function SalesList() {
               className="salesList-btn salesList-btn-excel"
               onClick={() => {
                 const csv = [
-                  ["Date","Code","Invoice","Customer","Product","Amount","Paid","Outstanding"].join(","),
-                  ...filteredTable.map(r =>
-                    [r.date, r.acCode, r.invoice, r.customer, r.product, r.amount, r.paid, r.outstanding].map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")
+                  ["Date", "Code", "Invoice", "Customer", "Product", "Amount", "Paid", "Outstanding"].join(","),
+                  ...filteredTable.map((r) =>
+                    [r.date, r.acCode, r.invoice, r.customer, r.product, r.amount, r.paid, r.outstanding]
+                      .map((c) => `"${String(c).replace(/"/g, '""')}"`)
+                      .join(",")
                   )
                 ].join("\n");
+
                 const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `sales-export-${new Date().toISOString().slice(0,10)}.csv`;
+                a.download = `sales-export-${new Date().toISOString().slice(0, 10)}.csv`;
                 a.click();
                 URL.revokeObjectURL(url);
               }}
@@ -454,7 +523,7 @@ export default function SalesList() {
               Export Excel
             </button>
           </div>
-        </div>;
+        </div>
 
         <div className="salesList-tableWrapper">
           <table className="salesList-table">
@@ -474,7 +543,7 @@ export default function SalesList() {
             </thead>
 
             <tbody>
-              {paginatedData.map(row => (
+              {paginatedData.map((row) => (
                 <tr key={row.id}>
                   <td>{row.date}</td>
                   <td>{row.acCode}</td>
@@ -516,7 +585,7 @@ export default function SalesList() {
         <div className="salesList-pagination">
           <select
             value={rowsPerPage}
-            onChange={e => {
+            onChange={(e) => {
               setRowsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
@@ -528,13 +597,15 @@ export default function SalesList() {
           </select>
 
           <div className="salesList-pageButtons">
-            <button disabled={currentPage === 1}
-              onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+              Previous
+            </button>
 
             <button className="active">{currentPage}</button>
 
-            <button disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+              Next
+            </button>
           </div>
         </div>
       </div>
@@ -543,10 +614,16 @@ export default function SalesList() {
         <div className="modal-backdrop" onClick={closePaymentModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>Receive Payment</h3>
+
             <form onSubmit={submitPayment} className="modal-form">
               <label>
                 Date
-                <input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} required />
+                <input
+                  type="date"
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  required
+                />
               </label>
 
               <label>
@@ -566,7 +643,14 @@ export default function SalesList() {
 
               <label>
                 Amount to Receive
-                <input type="number" min="1" step="any" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} required />
+                <input
+                  type="number"
+                  min="1"
+                  step="any"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  required
+                />
               </label>
 
               <label>
@@ -580,12 +664,20 @@ export default function SalesList() {
 
               <label>
                 Note
-                <input value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} placeholder="Optional note" />
+                <input
+                  value={paymentNote}
+                  onChange={(e) => setPaymentNote(e.target.value)}
+                  placeholder="Optional note"
+                />
               </label>
 
               <div className="modal-actions">
-                <button type="button" className="btn ghost" onClick={closePaymentModal}>Cancel</button>
-                <button type="submit" className="btn primary">Receive Payment</button>
+                <button type="button" className="btn ghost" onClick={closePaymentModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn primary" disabled={submittingPayment}>
+                  {submittingPayment ? "Saving..." : "Receive Payment"}
+                </button>
               </div>
             </form>
           </div>

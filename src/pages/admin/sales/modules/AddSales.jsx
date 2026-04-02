@@ -504,7 +504,7 @@ export default function AddSalesModal({ onClose }) {
       discount_amount: Number(calculations.discountAmount || 0),
       paid_amount: Number(calculations.grandTotal || 0),
       outstanding_amount: 0,
-      sale_type: "FINAL",
+      sale_type: "FINAL", 
       items: row.items,
       compartments: mappedCompartments,
       delivery_files: row.deliveryImages.map(f => f.name)
