@@ -48,9 +48,9 @@ export default function StatementPreview() {
         <div className="statement-top">
 
           <div className="company-left">
-            <strong>YOUR COMPANY NAME LTD</strong>
-            <div>#302, 3rd Floor, Harbour View Tower</div>
-            <div>Samora Avenue</div>
+            <strong>EVOSHA TRADING COMPANY LIMITED</strong>
+            <div>12th Floor PSSSF Commercial Complex</div>
+            <div>Sam Nujoma Road</div>
 
             <div className="customer-code">{customer.code}</div>
             <div className="customer-name">{customer.name}</div>
@@ -130,8 +130,8 @@ export default function StatementPreview() {
           </div>
 
           <div className="footer-company">
-            <strong>YOUR COMPANY NAME LTD</strong>
-            <div>P.O Box 77101</div>
+            <strong>EVOSHA TRADING COMPANY LIMITED</strong>
+            <div>P.O Box 3434</div>
           </div>
         </div>
 
