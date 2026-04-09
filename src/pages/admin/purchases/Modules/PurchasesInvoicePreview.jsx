@@ -290,22 +290,33 @@ export default function PurchaseOrder() {
           </section>
 
           <footer className="poi-footer">
-            <div className="poi-totals">
-              <div>GRAND TOTAL</div>
-              <div className="poi-amt">
-                TZS { (data.items && data.items.length) ? data.items.reduce((s, it) => s + (Number(it.total)||0), 0).toLocaleString() : "0.00" }
-              </div>
-            </div>
+            {(() => {
+              const subtotal = (data.items && data.items.length)
+                ? data.items.reduce((s, it) => s + (Number(it.total) || 0), 0)
+                : 0;
 
-            <div className="poi-vat">
-              <div>VAT</div>
-              <div>NIL</div>
-            </div>
+              const vatAmount = subtotal * 0.18;
+              const grandTotal = subtotal + vatAmount;
 
-            <div className="poi-grand">
-              <div>GRAND TOTAL</div>
-              <div>TZS {(data.items && data.items.length) ? data.items.reduce((s, it) => s + (Number(it.total)||0), 0).toLocaleString() : "0.00"}</div>
-            </div>
+              return (
+                <>
+                  <div className="poi-totals">
+                    <span>TOTAL</span>
+                    <span>TZS {subtotal.toLocaleString()}</span>
+                  </div>
+
+                  <div className="poi-vat">
+                    <span>VAT (18%)</span>
+                    <span>TZS {vatAmount.toLocaleString()}</span>
+                  </div>
+
+                  <div className="poi-grand">
+                    <span>GRAND TOTAL</span>
+                    <span>TZS {grandTotal.toLocaleString()}</span>
+                  </div>
+                </>
+              );
+            })()}
           </footer>
         </div>
       </div>
