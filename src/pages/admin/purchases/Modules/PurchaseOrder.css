@@ -162,12 +162,14 @@
 /* Items table */
 .poi-items {
   margin-top: 12px;
+  min-height: 420px;
 }
 
 .poi-items-table {
   width: 100%;
   border-collapse: collapse;
   border: 2px solid #000;
+  min-height: 420px;
 }
 
 .poi-items-table th,
@@ -184,13 +186,19 @@
 }
 
 .poi-col-qty { width: 7%; text-align:center; }
-.poi-col-part { width: 60%; }
-.poi-col-unit { width: 12%; text-align:center; }
-.poi-col-amt { width: 12%; text-align:right; }
+.poi-col-part { width: 63%; }
+.poi-col-unit { width: 13%; text-align:center; }
+.poi-col-amt { width: 13%; text-align:right; }
 .poi-col-cts { width: 4%; text-align:center; }
 
-/* Make the big blank space like in photo: table body large height */
-.poi-items-table tbody tr td.poi-col-part-cell { min-height: 300px; }
+.poi-items-table tbody tr {
+  height: 46px;
+}
+
+.poi-items-table tbody tr:last-child td {
+  padding-bottom: 160px;
+}
+
 
 /* Footer totals */
 .poi-footer {
@@ -201,11 +209,29 @@
   align-items: center;
 }
 
+.poi-footer {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
 .poi-footer .poi-totals,
 .poi-footer .poi-vat,
 .poi-footer .poi-grand {
+  width: 260px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   text-align: right;
   font-weight: 700;
+  font-size: 15px;
+}
+
+.poi-amt {
+  font-size: 15px;
+  margin-top: 0;
 }
 
 .poi-amt {
