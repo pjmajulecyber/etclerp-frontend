@@ -3,6 +3,15 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../../../../services/api";
 
+/*
+  Converted to Purchase Order component.
+  - All "customer" wording in the UI is now "supplier".
+  - Prefill respects incoming.saleData.supplier OR incoming.sa
+  leData.customer.
+  - Loads additional master endpoints.
+  - Saves purchases including items and returns backend response; navigation sends backend id to preview.
+*/
+
 const chargesDB = [
   { code: "CH-001", name: "Transport", price: 150000 },
   { code: "CH-002", name: "Handling", price: 25000 }
@@ -29,8 +38,6 @@ export default function AddPurchaseOrder({ onClose }) {
   const [dashboardData, setDashboardData] = useState(null);
   const [inventoryMeta, setInventoryMeta] = useState(null);
 
-  const [saving, setSaving] = useState(false);
-
   const handleClose = () => {
     if (onClose) onClose();
     else navigate("/admin/purchases");
@@ -51,6 +58,7 @@ export default function AddPurchaseOrder({ onClose }) {
   const [items, setItems] = useState([]);
   const [discountAll, setDiscountAll] = useState(0);
   const [paidAmount, setPaidAmount] = useState(0);
+  const [saving, setSaving] = useState(false);
 
   const invoiceNumber = incoming?.invoiceNumber || `PINV-${Date.now()}`;
 
@@ -71,10 +79,10 @@ export default function AddPurchaseOrder({ onClose }) {
     loadAllMasters();
   }, []);
 
-  const unwrap = (res) => {
-    const val = res?.data ?? res ?? [];
-    if (Array.isArray(val)) return val;
-    if (Array.isArray(val?.results)) return val.results;
+  const unwrapList = (res) => {
+    const data = res?.data ?? res ?? [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.results)) return data.results;
     return [];
   };
 
@@ -104,29 +112,29 @@ export default function AddPurchaseOrder({ onClose }) {
         API.get("/inventory/").catch(() => ({ data: null }))
       ]);
 
-      const suppliers = unwrap(suppliersRes).map((s) => ({
+      const suppliers = unwrapList(suppliersRes).map((s) => ({
         id: s.id,
         code: s.code || s.supplier_code || `SUP-${s.id}`,
         name: s.name || s.supplier_name || s.company || ""
       }));
       setSuppliersDB(suppliers);
 
-      const prods = unwrap(productsRes).map((p) => ({
-        id: p.id ?? null,
+      const products = unwrapList(productsRes).map((p) => ({
         code: p.code || p.id,
         name: p.name || p.title || "",
-        price: Number(p.buying_price ?? p.cost_price ?? p.selling_price ?? 0)
+        price: Number(p.buying_price ?? p.cost_price ?? p.selling_price ?? 0),
+        productId: p.id ?? null
       }));
-      setProductsDB(prods);
+      setProductsDB(products);
 
-      setPaymentsDB(paymentsRes?.data ?? []);
-      setCustomersDB(customersRes?.data ?? []);
-      setExpensesDB(expensesRes?.data ?? []);
-      setDocumentsDB(documentsRes?.data ?? []);
-      setHrDB(hrRes?.data ?? []);
-      setAssetsDB(assetsRes?.data ?? []);
-      setDashboardData(dashboardRes?.data ?? null);
-      setInventoryMeta(inventoryRes?.data ?? null);
+      setPaymentsDB(paymentsRes?.data ?? paymentsRes ?? []);
+      setCustomersDB(customersRes?.data ?? customersRes ?? []);
+      setExpensesDB(expensesRes?.data ?? expensesRes ?? []);
+      setDocumentsDB(documentsRes?.data ?? documentsRes ?? []);
+      setHrDB(hrRes?.data ?? hrRes ?? []);
+      setAssetsDB(assetsRes?.data ?? assetsRes ?? []);
+      setDashboardData(dashboardRes?.data ?? dashboardRes ?? null);
+      setInventoryMeta(inventoryRes?.data ?? inventoryRes ?? null);
     } catch (err) {
       console.error("loadAllMasters error:", err);
     }
@@ -136,6 +144,7 @@ export default function AddPurchaseOrder({ onClose }) {
     if (!incoming) return;
 
     const incomingSupplier = incoming.supplier || incoming.customer || null;
+
     if (incomingSupplier) {
       if (typeof incomingSupplier === "number" || typeof incomingSupplier === "string") {
         const found = suppliersDB.find(
@@ -143,25 +152,32 @@ export default function AddPurchaseOrder({ onClose }) {
             String(s.id) === String(incomingSupplier) ||
             String(s.code) === String(incomingSupplier)
         );
+
         if (found) {
           setSelectedSupplier(found);
           setSupplierSearch(`${found.code} - ${found.name}`);
         } else {
           setSelectedSupplier({ id: incomingSupplier, code: incomingSupplier, name: "" });
-          setSupplierSearch(String(incomingSupplier));
+          setSupplierSearch(`${incomingSupplier}`);
         }
       } else {
-        const normalized = {
+        const code =
+          incomingSupplier.code ??
+          incomingSupplier.supplier_code ??
+          "";
+
+        const name =
+          incomingSupplier.name ??
+          incomingSupplier.supplier_name ??
+          incomingSupplier.company ??
+          "";
+
+        setSelectedSupplier({
           id: incomingSupplier.id ?? incomingSupplier.pk ?? null,
-          code: incomingSupplier.code ?? incomingSupplier.supplier_code ?? "",
-          name:
-            incomingSupplier.name ??
-            incomingSupplier.supplier_name ??
-            incomingSupplier.company ??
-            ""
-        };
-        setSelectedSupplier(normalized);
-        setSupplierSearch(`${normalized.code} - ${normalized.name}`);
+          code,
+          name
+        });
+        setSupplierSearch(`${code} - ${name}`.trim());
       }
     }
 
@@ -171,12 +187,14 @@ export default function AddPurchaseOrder({ onClose }) {
 
     if (incoming.items && Array.isArray(incoming.items)) {
       const cloned = incoming.items.map((it) => ({
-        code: it.code ?? it.product_code ?? "",
-        name: it.name ?? it.description ?? "",
+        code: it.code ?? it.product_code ?? (it.product && it.product.code) ?? "",
+        name: it.name ?? it.product_name ?? (it.product && it.product.name) ?? "",
         price: Number(it.price ?? it.unit_price ?? 0),
         qty: Number(it.qty ?? it.quantity ?? 1),
         taxType: it.taxType || "Exclusive",
-        type: it.type || (String(it.code || "").startsWith("CH-") ? "charge" : "product"),
+        type:
+          it.type ||
+          (typeof it.code === "string" && it.code.startsWith("CH-") ? "charge" : "product"),
         productId: it.product ?? null
       }));
       setItems(cloned);
@@ -189,6 +207,7 @@ export default function AddPurchaseOrder({ onClose }) {
     if (incoming.paidAmount !== undefined && incoming.paidAmount !== null) {
       setPaidAmount(Number(incoming.paidAmount) || 0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incoming, suppliersDB]);
 
   const filteredSuppliers = suppliersDB.filter((s) =>
@@ -197,12 +216,14 @@ export default function AddPurchaseOrder({ onClose }) {
 
   const addProduct = () => {
     let code = selectedProductCode;
+
     if (!code && selectedProductInput) {
       const match = productsDB.find((p) =>
         `${p.code} ${p.name}`.toLowerCase().includes(selectedProductInput.toLowerCase())
       );
       if (match) code = match.code;
     }
+
     if (!code) return;
 
     const p = productsDB.find((x) => x.code === code);
@@ -217,21 +238,24 @@ export default function AddPurchaseOrder({ onClose }) {
         qty: 1,
         taxType: "Exclusive",
         type: "product",
-        productId: p.id
+        productId: p.productId ?? null
       }
     ]);
+
     setSelectedProductCode("");
     setSelectedProductInput("");
   };
 
   const addCharge = () => {
     let code = selectedChargeCode;
+
     if (!code && selectedChargeInput) {
       const match = chargesDB.find((c) =>
         `${c.code} ${c.name}`.toLowerCase().includes(selectedChargeInput.toLowerCase())
       );
       if (match) code = match.code;
     }
+
     if (!code) return;
 
     const c = chargesDB.find((x) => x.code === code);
@@ -249,6 +273,7 @@ export default function AddPurchaseOrder({ onClose }) {
         productId: null
       }
     ]);
+
     setSelectedChargeCode("");
     setSelectedChargeInput("");
   };
@@ -291,58 +316,64 @@ export default function AddPurchaseOrder({ onClose }) {
 
   const format = (n) => (Number(n) || 0).toLocaleString();
 
-  const savePurchaseToAPI = async (finalCalculations, finalPaidAmount, forcedType = null) => {
-    if (!selectedSupplier?.id) {
-      alert("Supplier is required.");
+  const savePurchaseToAPI = async (finalCalculations, finalPaidAmount, previewSaleType) => {
+    if (!selectedSupplier || !selectedSupplier.id) {
+      alert("Supplier is required");
       return null;
     }
 
     if (!items.length) {
-      alert("Add at least one item.");
+      alert("Please add at least one item.");
       return null;
     }
 
-    const payloadItems = items.map((it) => ({
-      product: it.type === "product" ? (it.productId || null) : null,
-      description: it.name || "",
-      quantity: Number(it.qty || 0),
-      unit_price: Number(it.price || 0),
-      line_total: Number(((Number(it.qty || 0) * Number(it.price || 0)) || 0).toFixed(2))
-    }));
+    try {
+      const payloadItems = items.map((it) => ({
+        product: it.type === "product" ? (it.productId || null) : null,
+        description: it.name || "",
+        quantity: Number(it.qty || 0),
+        unit_price: Number(it.price || 0),
+        line_total: Number(
+          ((Number(it.qty || 0) * Number(it.price || 0)) || 0).toFixed(2)
+        )
+      }));
 
-    const payload = {
-      invoice_number: invoiceNumber,
-      date,
-      supplier: selectedSupplier.id,
-      purchase_type: String(forcedType || saleType || "Final").toUpperCase(),
-      subtotal: Number(finalCalculations.subtotal || 0),
-      tax_amount: Number(finalCalculations.totalTax || 0),
-      discount_amount: Number(finalCalculations.discountAmount || 0),
-      total_amount: Number(finalCalculations.grandTotal || 0),
-      paid_amount: Number(finalPaidAmount || 0),
-      outstanding_amount: Number(finalCalculations.outstanding || 0),
-      status:
+      const status =
         Number(finalCalculations.outstanding || 0) <= 0
           ? "PAID"
           : Number(finalPaidAmount || 0) > 0
           ? "PARTIAL"
-          : "UNPAID",
-      items: payloadItems
-    };
+          : "UNPAID";
 
-    try {
+      const payload = {
+        invoice_number: invoiceNumber,
+        date,
+        supplier: selectedSupplier.id,
+        purchase_type:
+          String(previewSaleType || saleType || "Final").toUpperCase(),
+        subtotal: Number(finalCalculations.subtotal || 0),
+        tax_amount: Number(finalCalculations.totalTax || 0),
+        discount_amount: Number(finalCalculations.discountAmount || 0),
+        total_amount: Number(finalCalculations.grandTotal || 0),
+        paid_amount: Number(finalPaidAmount || 0),
+        outstanding_amount: Number(finalCalculations.outstanding || 0),
+        status,
+        items: payloadItems
+      };
+
       console.log("Saving purchase payload:", payload);
+
       const res = await API.post("/purchases/", payload);
-      console.log("Purchase saved response:", res?.data);
-      return res?.data ?? null;
+      const data = res?.data ?? null;
+      console.log("Purchase saved, backend response:", data);
+      return data;
     } catch (err) {
-      const errorData = err?.response?.data;
-      console.error("Purchase API save failed:", errorData || err.message);
+      console.error("Purchase API save failed:", err?.response?.data || err.message);
       alert(
         "Purchase save failed: " +
           (
-            errorData?.detail ||
-            JSON.stringify(errorData) ||
+            err?.response?.data?.detail ||
+            JSON.stringify(err?.response?.data) ||
             err.message
           )
       );
@@ -355,6 +386,11 @@ export default function AddPurchaseOrder({ onClose }) {
     setSaving(true);
 
     try {
+      if (!incoming) {
+        invoiceCounter++;
+        localStorage.setItem("purchaseInvoiceCounter", invoiceCounter);
+      }
+
       const finalCalculations = forcePaid
         ? { ...calculations, outstanding: 0 }
         : calculations;
@@ -363,27 +399,24 @@ export default function AddPurchaseOrder({ onClose }) {
         ? Number(finalCalculations.grandTotal || 0)
         : Number(paidAmount || 0);
 
+      const selectedType = overrideType || saleType;
+
       const saved = await savePurchaseToAPI(
         finalCalculations,
         finalPaidAmount,
-        overrideType || saleType
+        selectedType
       );
 
-      // CRITICAL FIX: do not navigate if backend save failed
-      if (!saved || !saved.id) {
+      if (!saved) {
         setSaving(false);
         return;
       }
 
-      if (!incoming) {
-        invoiceCounter++;
-        localStorage.setItem("purchaseInvoiceCounter", invoiceCounter);
-      }
-
       const saleDataForPreview = {
         invoiceNumber:
-          saved.invoice_number ||
           saved.po_number ||
+          saved.invoice_number ||
+          saved.invoiceNumber ||
           invoiceNumber,
         supplier: selectedSupplier,
         items,
@@ -391,14 +424,23 @@ export default function AddPurchaseOrder({ onClose }) {
         paidAmount: finalPaidAmount,
         calculations: finalCalculations,
         date,
-        saleType: overrideType || saleType,
+        saleType: selectedType,
         referenceNo,
         backendResponse: saved
       };
 
-      navigate("/admin/purchases/invoice-preview", {
-        state: { id: saved.id, saleData: saleDataForPreview }
-      });
+      if (saved && (saved.id || saved.pk)) {
+        navigate("/admin/purchases/invoice-preview", {
+          state: {
+            id: saved.id ?? saved.pk,
+            saleData: saleDataForPreview
+          }
+        });
+      } else {
+        navigate("/admin/purchases/invoice-preview", {
+          state: saleDataForPreview
+        });
+      }
 
       if (typeof onClose === "function") onClose();
     } finally {
@@ -484,7 +526,11 @@ export default function AddPurchaseOrder({ onClose }) {
 
             <div className="erp-field">
               <label>Purchase Date *</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
 
             <div className="erp-field">
@@ -498,7 +544,10 @@ export default function AddPurchaseOrder({ onClose }) {
 
             <div className="erp-field">
               <label>AC CODE.</label>
-              <input value={referenceNo} onChange={(e) => setReferenceNo(e.target.value)} />
+              <input
+                value={referenceNo}
+                onChange={(e) => setReferenceNo(e.target.value)}
+              />
             </div>
           </div>
 
@@ -622,12 +671,16 @@ export default function AddPurchaseOrder({ onClose }) {
                     </td>
                   </tr>
                 )}
+
                 {items.map((item, idx) => {
                   const total = (Number(item.qty) || 0) * (Number(item.price) || 0);
+
                   return (
                     <tr key={idx}>
                       <td>
-                        <div className="line-item-title">{item.code} — {item.name}</div>
+                        <div className="line-item-title">
+                          {item.code} — {item.name}
+                        </div>
                         <div className="line-item-sub">
                           {item.type === "charge" ? "Charge" : "Product"}
                         </div>
@@ -695,11 +748,21 @@ export default function AddPurchaseOrder({ onClose }) {
             </div>
 
             <div className="erp-right">
-              <div className="tot-row"><span>Subtotal:</span> <strong>{format(calculations.subtotal)}</strong></div>
-              <div className="tot-row"><span>Total Tax (18%):</span> <strong>{format(calculations.totalTax)}</strong></div>
-              <div className="tot-row"><span>Discount:</span> <strong>{format(calculations.discountAmount)}</strong></div>
-              <div className="tot-row grand"><span>Grand Total:</span> <strong>{format(calculations.grandTotal)}</strong></div>
-              <div className="tot-row"><span>Outstanding:</span> <strong>{format(calculations.outstanding)}</strong></div>
+              <div className="tot-row">
+                <span>Subtotal:</span> <strong>{format(calculations.subtotal)}</strong>
+              </div>
+              <div className="tot-row">
+                <span>Total Tax (18%):</span> <strong>{format(calculations.totalTax)}</strong>
+              </div>
+              <div className="tot-row">
+                <span>Discount:</span> <strong>{format(calculations.discountAmount)}</strong>
+              </div>
+              <div className="tot-row grand">
+                <span>Grand Total:</span> <strong>{format(calculations.grandTotal)}</strong>
+              </div>
+              <div className="tot-row">
+                <span>Outstanding:</span> <strong>{format(calculations.outstanding)}</strong>
+              </div>
             </div>
           </div>
 
