@@ -365,7 +365,7 @@ export default function Dashboard() {
         <div className="dashboardCard-wrapper">
           <div className="dssummary-grid">
             {summary.map((item, index) => (
-              <div key={index} className="dssummary-card" style={{ backgroundColor: `${item.color}20` }}>
+              <div key={index} className="dssummary-card" style={{ backgroundColor: `${item.color}50` }}>
                 <h4>{item.title}</h4>
                 <div className="dssummary-value-row">
                   {item.unit && <span className="dscurrency-tag">{item.unit}</span>}
