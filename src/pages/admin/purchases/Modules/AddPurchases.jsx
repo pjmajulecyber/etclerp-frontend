@@ -474,7 +474,7 @@ export default function AddPurchaseOrder({ onClose }) {
         });
       }
 
-      if (typeof onClose === "function") onClose();
+      return;
     } finally {
       setSaving(false);
     }
