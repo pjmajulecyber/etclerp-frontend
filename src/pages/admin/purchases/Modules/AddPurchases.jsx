@@ -6,8 +6,7 @@ import API from "../../../../services/api";
 /*
   Converted to Purchase Order component.
   - All "customer" wording in the UI is now "supplier".
-  - Prefill respects incoming.saleData.supplier OR incoming.sa
-  leData.customer.
+  - Prefill respects incoming.saleData.supplier OR incoming.saleData.customer.
   - Loads additional master endpoints.
   - Saves purchases including items and returns backend response; navigation sends backend id to preview.
 */
@@ -28,6 +27,7 @@ export default function AddPurchaseOrder({ onClose }) {
 
   const [suppliersDB, setSuppliersDB] = useState([]);
   const [productsDB, setProductsDB] = useState([]);
+  const [depotsDB, setDepotsDB] = useState([]);
 
   const [paymentsDB, setPaymentsDB] = useState([]);
   const [customersDB, setCustomersDB] = useState([]);
@@ -49,6 +49,7 @@ export default function AddPurchaseOrder({ onClose }) {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [saleType, setSaleType] = useState("Final");
   const [referenceNo, setReferenceNo] = useState("");
+  const [depot, setDepot] = useState("");
 
   const [selectedProductInput, setSelectedProductInput] = useState("");
   const [selectedProductCode, setSelectedProductCode] = useState("");
@@ -91,6 +92,7 @@ export default function AddPurchaseOrder({ onClose }) {
       const [
         suppliersRes,
         productsRes,
+        depotsRes,
         paymentsRes,
         customersRes,
         expensesRes,
@@ -102,6 +104,7 @@ export default function AddPurchaseOrder({ onClose }) {
       ] = await Promise.all([
         API.get("/suppliers/").catch(() => ({ data: [] })),
         API.get("/inventory/products/").catch(() => ({ data: [] })),
+        API.get("/inventory/depots/").catch(() => ({ data: [] })),
         API.get("/payments/").catch(() => ({ data: [] })),
         API.get("/customers/").catch(() => ({ data: [] })),
         API.get("/expenses/").catch(() => ({ data: [] })),
@@ -126,6 +129,13 @@ export default function AddPurchaseOrder({ onClose }) {
         productId: p.id ?? null
       }));
       setProductsDB(products);
+
+      const depots = unwrapList(depotsRes).map((d) => ({
+        id: d.id,
+        code: d.code || d.id,
+        name: d.name || d.code || `Depot ${d.id}`
+      }));
+      setDepotsDB(depots);
 
       setPaymentsDB(paymentsRes?.data ?? paymentsRes ?? []);
       setCustomersDB(customersRes?.data ?? customersRes ?? []);
@@ -185,17 +195,25 @@ export default function AddPurchaseOrder({ onClose }) {
     if (incoming.saleType) setSaleType(incoming.saleType);
     if (incoming.referenceNo) setReferenceNo(incoming.referenceNo);
 
+    if (incoming.depot) {
+      if (typeof incoming.depot === "object") {
+        setDepot(String(incoming.depot.id ?? incoming.depot.code ?? ""));
+      } else {
+        setDepot(String(incoming.depot));
+      }
+    }
+
     if (incoming.items && Array.isArray(incoming.items)) {
       const cloned = incoming.items.map((it) => ({
         code: it.code ?? it.product_code ?? (it.product && it.product.code) ?? "",
-        name: it.name ?? it.product_name ?? (it.product && it.product.name) ?? "",
+        name: it.name ?? it.product_name ?? it.description ?? (it.product && it.product.name) ?? "",
         price: Number(it.price ?? it.unit_price ?? 0),
         qty: Number(it.qty ?? it.quantity ?? 1),
         taxType: it.taxType || "Exclusive",
         type:
           it.type ||
           (typeof it.code === "string" && it.code.startsWith("CH-") ? "charge" : "product"),
-        productId: it.product ?? null
+        productId: typeof it.product === "object" ? (it.product.id ?? null) : (it.product ?? null)
       }));
       setItems(cloned);
     }
@@ -208,7 +226,7 @@ export default function AddPurchaseOrder({ onClose }) {
       setPaidAmount(Number(incoming.paidAmount) || 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incoming, suppliersDB]);
+  }, [incoming, suppliersDB, depotsDB]);
 
   const filteredSuppliers = suppliersDB.filter((s) =>
     `${s.code} ${s.name}`.toLowerCase().includes(supplierSearch.toLowerCase())
@@ -322,21 +340,33 @@ export default function AddPurchaseOrder({ onClose }) {
       return null;
     }
 
+    if (!depot) {
+      alert("Depot is required");
+      return null;
+    }
+
     if (!items.length) {
       alert("Please add at least one item.");
       return null;
     }
 
     try {
-      const payloadItems = items.map((it) => ({
-        product: it.type === "product" ? (it.productId || null) : null,
-        description: it.name || "",
-        quantity: Number(it.qty || 0),
-        unit_price: Number(it.price || 0),
-        line_total: Number(
-          ((Number(it.qty || 0) * Number(it.price || 0)) || 0).toFixed(2)
-        )
-      }));
+      const payloadItems = items.map((it) => {
+        const row = {
+          description: it.name || "",
+          quantity: Number(it.qty || 0),
+          unit_price: Number(it.price || 0),
+          line_total: Number(
+            ((Number(it.qty || 0) * Number(it.price || 0)) || 0).toFixed(2)
+          )
+        };
+
+        if (it.type === "product" && it.productId) {
+          row.product = it.productId;
+        }
+
+        return row;
+      });
 
       const status =
         Number(finalCalculations.outstanding || 0) <= 0
@@ -351,6 +381,7 @@ export default function AddPurchaseOrder({ onClose }) {
         supplier: selectedSupplier.id,
         purchase_type:
           String(previewSaleType || saleType || "Final").toUpperCase(),
+        depot: Number(depot),
         subtotal: Number(finalCalculations.subtotal || 0),
         tax_amount: Number(finalCalculations.totalTax || 0),
         discount_amount: Number(finalCalculations.discountAmount || 0),
@@ -386,11 +417,6 @@ export default function AddPurchaseOrder({ onClose }) {
     setSaving(true);
 
     try {
-      if (!incoming) {
-        invoiceCounter++;
-        localStorage.setItem("purchaseInvoiceCounter", invoiceCounter);
-      }
-
       const finalCalculations = forcePaid
         ? { ...calculations, outstanding: 0 }
         : calculations;
@@ -412,6 +438,11 @@ export default function AddPurchaseOrder({ onClose }) {
         return;
       }
 
+      if (!incoming) {
+        invoiceCounter++;
+        localStorage.setItem("purchaseInvoiceCounter", invoiceCounter);
+      }
+
       const saleDataForPreview = {
         invoiceNumber:
           saved.po_number ||
@@ -426,6 +457,7 @@ export default function AddPurchaseOrder({ onClose }) {
         date,
         saleType: selectedType,
         referenceNo,
+        depot,
         backendResponse: saved
       };
 
@@ -539,6 +571,18 @@ export default function AddPurchaseOrder({ onClose }) {
                 <option>Final</option>
                 <option>Quotation</option>
                 <option>Credit</option>
+              </select>
+            </div>
+
+            <div className="erp-field">
+              <label>Depot *</label>
+              <select value={depot} onChange={(e) => setDepot(e.target.value)}>
+                <option value="">Select Depot</option>
+                {depotsDB.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.code ? `${d.code} - ${d.name}` : d.name}
+                  </option>
+                ))}
               </select>
             </div>
 
