@@ -1,16 +1,7 @@
-// src/pages/admin/purchases/modules/AddPurchases.jsx
 import "./AddPurchases.css";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../../../../services/api";
-
-/*
-  Converted to Purchase Order component.
-  - All "customer" wording in the UI is now "supplier".
-  - Prefill respects incoming.saleData.supplier OR incoming.saleData.customer.
-  - Loads additional master endpoints (payments, customers, expenses, documents, hr, assets, dashboard).
-  - Saves purchases including items and returns backend response; navigation sends backend id to preview.
-*/
 
 const chargesDB = [
   { code: "CH-001", name: "Transport", price: 150000 },
@@ -24,21 +15,21 @@ export default function AddPurchaseOrder({ onClose }) {
   const location = useLocation();
   const overlayRef = useRef(null);
 
-  // support incoming shapes
   const incoming = location.state?.saleData ?? location.state ?? null;
 
   const [suppliersDB, setSuppliersDB] = useState([]);
   const [productsDB, setProductsDB] = useState([]);
 
-  // other master lists (loaded from APIs you requested)
   const [paymentsDB, setPaymentsDB] = useState([]);
-  const [customersDB, setCustomersDB] = useState([]); // maybe reused elsewhere
+  const [customersDB, setCustomersDB] = useState([]);
   const [expensesDB, setExpensesDB] = useState([]);
   const [documentsDB, setDocumentsDB] = useState([]);
   const [hrDB, setHrDB] = useState([]);
   const [assetsDB, setAssetsDB] = useState([]);
   const [dashboardData, setDashboardData] = useState(null);
   const [inventoryMeta, setInventoryMeta] = useState(null);
+
+  const [saving, setSaving] = useState(false);
 
   const handleClose = () => {
     if (onClose) onClose();
@@ -61,7 +52,6 @@ export default function AddPurchaseOrder({ onClose }) {
   const [discountAll, setDiscountAll] = useState(0);
   const [paidAmount, setPaidAmount] = useState(0);
 
-  // invoice number generation (keeps stable if incoming provided)
   const invoiceNumber = incoming?.invoiceNumber || `PINV-${Date.now()}`;
 
   useEffect(() => {
@@ -77,13 +67,18 @@ export default function AddPurchaseOrder({ onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ============ LOAD MASTER DATA (all requested endpoints) ============ */
   useEffect(() => {
     loadAllMasters();
   }, []);
 
+  const unwrap = (res) => {
+    const val = res?.data ?? res ?? [];
+    if (Array.isArray(val)) return val;
+    if (Array.isArray(val?.results)) return val.results;
+    return [];
+  };
+
   const loadAllMasters = async () => {
-    // fire several basic loads in parallel, ignore fails but log them
     try {
       const [
         suppliersRes,
@@ -97,74 +92,76 @@ export default function AddPurchaseOrder({ onClose }) {
         dashboardRes,
         inventoryRes
       ] = await Promise.all([
-        API.get("suppliers/").catch(e => ({ data: [] })),
-        API.get("inventory/products/").catch(e => ({ data: [] })),
-        API.get("payments/").catch(e => ({ data: [] })),
-        API.get("customers/").catch(e => ({ data: [] })),
-        API.get("expenses/").catch(e => ({ data: [] })),
-        API.get("documents/").catch(e => ({ data: [] })),
-        API.get("hr/").catch(e => ({ data: [] })),
-        API.get("assets/").catch(e => ({ data: [] })),
-        API.get("dashboard/").catch(e => ({ data: null })),
-        API.get("inventory/").catch(e => ({ data: null }))
+        API.get("/suppliers/").catch(() => ({ data: [] })),
+        API.get("/inventory/products/").catch(() => ({ data: [] })),
+        API.get("/payments/").catch(() => ({ data: [] })),
+        API.get("/customers/").catch(() => ({ data: [] })),
+        API.get("/expenses/").catch(() => ({ data: [] })),
+        API.get("/documents/").catch(() => ({ data: [] })),
+        API.get("/hr/").catch(() => ({ data: [] })),
+        API.get("/assets/").catch(() => ({ data: [] })),
+        API.get("/dashboard/").catch(() => ({ data: null })),
+        API.get("/inventory/").catch(() => ({ data: null }))
       ]);
 
-      // map suppliers
-      const suppliersRaw = suppliersRes?.data ?? suppliersRes ?? [];
-      const suppliers = (Array.isArray(suppliersRaw) ? suppliersRaw : suppliersRaw.results ?? []).map(s => ({
+      const suppliers = unwrap(suppliersRes).map((s) => ({
         id: s.id,
         code: s.code || s.supplier_code || `SUP-${s.id}`,
         name: s.name || s.supplier_name || s.company || ""
       }));
       setSuppliersDB(suppliers);
 
-      // products
-      const productsRaw = productsRes?.data ?? productsRes ?? [];
-      const prods = (Array.isArray(productsRaw) ? productsRaw : productsRaw.results ?? []).map(p => ({
+      const prods = unwrap(productsRes).map((p) => ({
+        id: p.id ?? null,
         code: p.code || p.id,
         name: p.name || p.title || "",
         price: Number(p.buying_price ?? p.cost_price ?? p.selling_price ?? 0)
       }));
       setProductsDB(prods);
 
-      // payments, customers, expenses, documents, hr, assets
-      setPaymentsDB(paymentsRes?.data ?? paymentsRes ?? []);
-      setCustomersDB(customersRes?.data ?? customersRes ?? []);
-      setExpensesDB(expensesRes?.data ?? expensesRes ?? []);
-      setDocumentsDB(documentsRes?.data ?? documentsRes ?? []);
-      setHrDB(hrRes?.data ?? hrRes ?? []);
-      setAssetsDB(assetsRes?.data ?? assetsRes ?? []);
-      setDashboardData(dashboardRes?.data ?? dashboardRes ?? null);
-      setInventoryMeta(inventoryRes?.data ?? inventoryRes ?? null);
+      setPaymentsDB(paymentsRes?.data ?? []);
+      setCustomersDB(customersRes?.data ?? []);
+      setExpensesDB(expensesRes?.data ?? []);
+      setDocumentsDB(documentsRes?.data ?? []);
+      setHrDB(hrRes?.data ?? []);
+      setAssetsDB(assetsRes?.data ?? []);
+      setDashboardData(dashboardRes?.data ?? null);
+      setInventoryMeta(inventoryRes?.data ?? null);
     } catch (err) {
       console.error("loadAllMasters error:", err);
     }
   };
 
-  /* ============ hydrate incoming ============ */
   useEffect(() => {
     if (!incoming) return;
 
     const incomingSupplier = incoming.supplier || incoming.customer || null;
     if (incomingSupplier) {
-      // incoming may be an id or object; normalize to object
       if (typeof incomingSupplier === "number" || typeof incomingSupplier === "string") {
-        // find in suppliersDB if available
-        const found = suppliersDB.find(s => String(s.id) === String(incomingSupplier) || String(s.code) === String(incomingSupplier));
+        const found = suppliersDB.find(
+          (s) =>
+            String(s.id) === String(incomingSupplier) ||
+            String(s.code) === String(incomingSupplier)
+        );
         if (found) {
           setSelectedSupplier(found);
           setSupplierSearch(`${found.code} - ${found.name}`);
         } else {
           setSelectedSupplier({ id: incomingSupplier, code: incomingSupplier, name: "" });
-          setSupplierSearch(`${incomingSupplier}`);
+          setSupplierSearch(String(incomingSupplier));
         }
       } else {
-        setSelectedSupplier({
+        const normalized = {
           id: incomingSupplier.id ?? incomingSupplier.pk ?? null,
           code: incomingSupplier.code ?? incomingSupplier.supplier_code ?? "",
-          name: incomingSupplier.name ?? incomingSupplier.supplier_name ?? incomingSupplier.company ?? ""
-        });
-        setSupplierSearch(`${incomingSupplier.code ?? ""} - ${incomingSupplier.name ?? ""}`);
+          name:
+            incomingSupplier.name ??
+            incomingSupplier.supplier_name ??
+            incomingSupplier.company ??
+            ""
+        };
+        setSelectedSupplier(normalized);
+        setSupplierSearch(`${normalized.code} - ${normalized.name}`);
       }
     }
 
@@ -173,13 +170,14 @@ export default function AddPurchaseOrder({ onClose }) {
     if (incoming.referenceNo) setReferenceNo(incoming.referenceNo);
 
     if (incoming.items && Array.isArray(incoming.items)) {
-      const cloned = incoming.items.map(it => ({
-        code: it.code ?? it.product_code ?? (it.product && it.product.code) ?? "",
-        name: it.name ?? it.product_name ?? (it.product && it.product.name) ?? "",
+      const cloned = incoming.items.map((it) => ({
+        code: it.code ?? it.product_code ?? "",
+        name: it.name ?? it.description ?? "",
         price: Number(it.price ?? it.unit_price ?? 0),
         qty: Number(it.qty ?? it.quantity ?? 1),
         taxType: it.taxType || "Exclusive",
-        type: it.type || (typeof it.code === "string" && it.code.startsWith("CH-") ? "charge" : "product")
+        type: it.type || (String(it.code || "").startsWith("CH-") ? "charge" : "product"),
+        productId: it.product ?? null
       }));
       setItems(cloned);
     }
@@ -191,26 +189,37 @@ export default function AddPurchaseOrder({ onClose }) {
     if (incoming.paidAmount !== undefined && incoming.paidAmount !== null) {
       setPaidAmount(Number(incoming.paidAmount) || 0);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incoming, suppliersDB]);
 
-  /* ============ UI helpers ============ */
-  const filteredSuppliers = suppliersDB.filter(s =>
+  const filteredSuppliers = suppliersDB.filter((s) =>
     `${s.code} ${s.name}`.toLowerCase().includes(supplierSearch.toLowerCase())
   );
 
   const addProduct = () => {
     let code = selectedProductCode;
     if (!code && selectedProductInput) {
-      const match = productsDB.find(p =>
+      const match = productsDB.find((p) =>
         `${p.code} ${p.name}`.toLowerCase().includes(selectedProductInput.toLowerCase())
       );
       if (match) code = match.code;
     }
     if (!code) return;
-    const p = productsDB.find(x => x.code === code);
+
+    const p = productsDB.find((x) => x.code === code);
     if (!p) return;
-    setItems(prev => [...prev, { code: p.code, name: p.name, price: p.price, qty: 1, taxType: "Exclusive", type: "product" }]);
+
+    setItems((prev) => [
+      ...prev,
+      {
+        code: p.code,
+        name: p.name,
+        price: p.price,
+        qty: 1,
+        taxType: "Exclusive",
+        type: "product",
+        productId: p.id
+      }
+    ]);
     setSelectedProductCode("");
     setSelectedProductInput("");
   };
@@ -218,21 +227,34 @@ export default function AddPurchaseOrder({ onClose }) {
   const addCharge = () => {
     let code = selectedChargeCode;
     if (!code && selectedChargeInput) {
-      const match = chargesDB.find(c =>
+      const match = chargesDB.find((c) =>
         `${c.code} ${c.name}`.toLowerCase().includes(selectedChargeInput.toLowerCase())
       );
       if (match) code = match.code;
     }
     if (!code) return;
-    const c = chargesDB.find(x => x.code === code);
+
+    const c = chargesDB.find((x) => x.code === code);
     if (!c) return;
-    setItems(prev => [...prev, { code: c.code, name: c.name, price: c.price, qty: 1, taxType: "Exclusive", type: "charge" }]);
+
+    setItems((prev) => [
+      ...prev,
+      {
+        code: c.code,
+        name: c.name,
+        price: c.price,
+        qty: 1,
+        taxType: "Exclusive",
+        type: "charge",
+        productId: null
+      }
+    ]);
     setSelectedChargeCode("");
     setSelectedChargeInput("");
   };
 
   const updateItem = (index, field, value) => {
-    setItems(prev => {
+    setItems((prev) => {
       const copy = [...prev];
       copy[index] = { ...copy[index], [field]: value };
       return copy;
@@ -240,14 +262,14 @@ export default function AddPurchaseOrder({ onClose }) {
   };
 
   const removeItem = (index) => {
-    setItems(prev => prev.filter((_, i) => i !== index));
+    setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const calculations = useMemo(() => {
     let subtotal = 0;
     let totalTax = 0;
 
-    items.forEach(item => {
+    items.forEach((item) => {
       const lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
 
       if ((item.taxType || "").toLowerCase() === "exclusive") {
@@ -269,120 +291,133 @@ export default function AddPurchaseOrder({ onClose }) {
 
   const format = (n) => (Number(n) || 0).toLocaleString();
 
-  /* ============ SAVE PURCHASE to API (returns backend response) ============ */
-  const savePurchaseToAPI = async (finalCalculations, finalPaidAmount) => {
-    if (!selectedSupplier || !selectedSupplier.id) {
-      alert("Supplier is required");
+  const savePurchaseToAPI = async (finalCalculations, finalPaidAmount, forcedType = null) => {
+    if (!selectedSupplier?.id) {
+      alert("Supplier is required.");
       return null;
     }
 
-    try {
-      // build items payload (backend-friendly)
-      const payloadItems = items.map(it => ({
-        product: null, // optional
-        description: it.name,                 // ✅ FIX
-        quantity: Number(it.qty || 0),        // ✅ FIX
-        unit_price: Number(it.price || 0),    // ✅ OK
-        line_total: Number((Number(it.qty || 0) * Number(it.price || 0)).toFixed(2))
-      }));
-
-      const payload = {
-        invoice_number: invoiceNumber,
-        date,
-        supplier: selectedSupplier.id,
-        purchase_type: (saleType || "").toUpperCase(),
-
-        subtotal: Number(finalCalculations.subtotal || 0),
-        tax_amount: Number(finalCalculations.totalTax || 0),
-        discount_amount: Number(finalCalculations.discountAmount || 0),
-
-        total_amount: Number(finalCalculations.grandTotal || 0),
-        paid_amount: Number(finalPaidAmount || 0),
-        outstanding_amount: Number(finalCalculations.outstanding || 0),
-
-        status:
-          finalCalculations.outstanding <= 0
-            ? "PAID"
-            : finalPaidAmount > 0
-            ? "PARTIAL"
-            : "UNPAID",
-
-        reference_no: referenceNo || null,
-        items: payloadItems
-      };
-
-      // debug
-      console.log("Saving purchase payload:", payload);
-
-      // POST to purchases endpoint and return full response data
-      const res = await API.post("purchases/", payload);
-      const data = res?.data ?? null;
-      console.log("Purchase saved, backend response:", data);
-      return data;
-    } catch (err) {
-      console.error("Purchase API save failed:", err);
-      // bubble up null
+    if (!items.length) {
+      alert("Add at least one item.");
       return null;
     }
-  };
 
-  /* ============ NAVIGATION & handlers ============ */
-  const goToInvoicePreview = async (overrideType = null, forcePaid = false) => {
-    if (!incoming) {
-      invoiceCounter++;
-      localStorage.setItem("purchaseInvoiceCounter", invoiceCounter);
-    }
+    const payloadItems = items.map((it) => ({
+      product: it.type === "product" ? (it.productId || null) : null,
+      description: it.name || "",
+      quantity: Number(it.qty || 0),
+      unit_price: Number(it.price || 0),
+      line_total: Number(((Number(it.qty || 0) * Number(it.price || 0)) || 0).toFixed(2))
+    }));
 
-    const finalCalculations = forcePaid ? { ...calculations, outstanding: 0 } : calculations;
-    const finalPaidAmount = forcePaid ? Number(finalCalculations.grandTotal || 0) : paidAmount;
-
-    // save to backend and obtain saved object (with id)
-    const saved = await savePurchaseToAPI(finalCalculations, finalPaidAmount);
-
-    // Build local saleData for preview fallback
-    const saleDataForPreview = {
-      invoiceNumber,
-      supplier: selectedSupplier,
-      items,
-      discountAll,
-      paidAmount: finalPaidAmount,
-      calculations: finalCalculations,
+    const payload = {
+      invoice_number: invoiceNumber,
       date,
-      saleType: overrideType || saleType,
-      referenceNo,
-      backendResponse: saved
+      supplier: selectedSupplier.id,
+      purchase_type: String(forcedType || saleType || "Final").toUpperCase(),
+      subtotal: Number(finalCalculations.subtotal || 0),
+      tax_amount: Number(finalCalculations.totalTax || 0),
+      discount_amount: Number(finalCalculations.discountAmount || 0),
+      total_amount: Number(finalCalculations.grandTotal || 0),
+      paid_amount: Number(finalPaidAmount || 0),
+      outstanding_amount: Number(finalCalculations.outstanding || 0),
+      status:
+        Number(finalCalculations.outstanding || 0) <= 0
+          ? "PAID"
+          : Number(finalPaidAmount || 0) > 0
+          ? "PARTIAL"
+          : "UNPAID",
+      items: payloadItems
     };
 
-    // If backend returned id, navigate by id; otherwise pass saleData as fallback
-    if (saved && (saved.id || saved.pk)) {
-      navigate("/admin/purchases/invoice-preview", {
-        state: { id: saved.id ?? saved.pk, saleData: saleDataForPreview }
-      });
-    } else {
-      // backend didn't return id — still navigate with full saleData so preview can render
-      navigate("/admin/purchases/invoice-preview", { state: saleDataForPreview });
+    try {
+      console.log("Saving purchase payload:", payload);
+      const res = await API.post("/purchases/", payload);
+      console.log("Purchase saved response:", res?.data);
+      return res?.data ?? null;
+    } catch (err) {
+      const errorData = err?.response?.data;
+      console.error("Purchase API save failed:", errorData || err.message);
+      alert(
+        "Purchase save failed: " +
+          (
+            errorData?.detail ||
+            JSON.stringify(errorData) ||
+            err.message
+          )
+      );
+      return null;
     }
-
-    if (typeof onClose === "function") onClose();
   };
 
-  const handlePayNow = () => {
-    // set paid amount to grand total, then save & preview as paid
-    setPaidAmount(calculations.grandTotal);
-    setSaleType("Final");
-    // We don't await here (UI flow continues). goToInvoicePreview will save & navigate.
-    goToInvoicePreview("Final", true);
+  const goToInvoicePreview = async (overrideType = null, forcePaid = false) => {
+    if (saving) return;
+    setSaving(true);
+
+    try {
+      const finalCalculations = forcePaid
+        ? { ...calculations, outstanding: 0 }
+        : calculations;
+
+      const finalPaidAmount = forcePaid
+        ? Number(finalCalculations.grandTotal || 0)
+        : Number(paidAmount || 0);
+
+      const saved = await savePurchaseToAPI(
+        finalCalculations,
+        finalPaidAmount,
+        overrideType || saleType
+      );
+
+      // CRITICAL FIX: do not navigate if backend save failed
+      if (!saved || !saved.id) {
+        setSaving(false);
+        return;
+      }
+
+      if (!incoming) {
+        invoiceCounter++;
+        localStorage.setItem("purchaseInvoiceCounter", invoiceCounter);
+      }
+
+      const saleDataForPreview = {
+        invoiceNumber:
+          saved.invoice_number ||
+          saved.po_number ||
+          invoiceNumber,
+        supplier: selectedSupplier,
+        items,
+        discountAll,
+        paidAmount: finalPaidAmount,
+        calculations: finalCalculations,
+        date,
+        saleType: overrideType || saleType,
+        referenceNo,
+        backendResponse: saved
+      };
+
+      navigate("/admin/purchases/invoice-preview", {
+        state: { id: saved.id, saleData: saleDataForPreview }
+      });
+
+      if (typeof onClose === "function") onClose();
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSaveAndCreateInvoice = () => {
-    goToInvoicePreview();
+  const handlePayNow = async () => {
+    await goToInvoicePreview("Final", true);
   };
 
-  const handleCreditPurchase = () => {
-    goToInvoicePreview("Credit");
+  const handleSaveAndCreateInvoice = async () => {
+    await goToInvoicePreview();
   };
 
-  /* ---------------- UI (unchanged) ---------------- */
+  const handleCreditPurchase = async () => {
+    await goToInvoicePreview("Credit");
+  };
+
   return (
     <div
       className="addSales-overlay"
@@ -412,7 +447,6 @@ export default function AddPurchaseOrder({ onClose }) {
         </div>
 
         <div className="addSales-content">
-
           <div className="erp-row top-row">
             <div className="erp-field">
               <label>Supplier Name or Code *</label>
@@ -426,7 +460,7 @@ export default function AddPurchaseOrder({ onClose }) {
               />
               {supplierSearch && !selectedSupplier && (
                 <div className="erp-dropdown-menu customers">
-                  {filteredSuppliers.map(s => (
+                  {filteredSuppliers.map((s) => (
                     <div
                       key={s.id}
                       className="erp-dropdown-item"
@@ -491,11 +525,11 @@ export default function AddPurchaseOrder({ onClose }) {
                   {selectedProductInput && (
                     <div className="erp-dropdown-menu">
                       {productsDB
-                        .filter(p =>
+                        .filter((p) =>
                           `${p.code} ${p.name}`.toLowerCase().includes(selectedProductInput.toLowerCase())
                         )
                         .slice(0, 8)
-                        .map(p => (
+                        .map((p) => (
                           <div
                             key={p.code}
                             className="erp-dropdown-item"
@@ -511,7 +545,9 @@ export default function AddPurchaseOrder({ onClose }) {
                   )}
                 </div>
 
-                <button className="erp-add-btn" onClick={addProduct}>Add</button>
+                <button className="erp-add-btn" onClick={addProduct}>
+                  Add
+                </button>
               </div>
             </div>
 
@@ -537,12 +573,13 @@ export default function AddPurchaseOrder({ onClose }) {
                   {selectedChargeInput && (
                     <div className="erp-dropdown-menu">
                       {chargesDB
-                        .filter(c =>
-                          c.code.toLowerCase().includes(selectedChargeInput.toLowerCase()) ||
-                          c.name.toLowerCase().includes(selectedChargeInput.toLowerCase())
+                        .filter(
+                          (c) =>
+                            c.code.toLowerCase().includes(selectedChargeInput.toLowerCase()) ||
+                            c.name.toLowerCase().includes(selectedChargeInput.toLowerCase())
                         )
                         .slice(0, 8)
-                        .map(c => (
+                        .map((c) => (
                           <div
                             key={c.code}
                             className="erp-dropdown-item"
@@ -558,7 +595,9 @@ export default function AddPurchaseOrder({ onClose }) {
                   )}
                 </div>
 
-                <button className="erp-add-btn" onClick={addCharge}>Add</button>
+                <button className="erp-add-btn" onClick={addCharge}>
+                  Add
+                </button>
               </div>
             </div>
           </div>
@@ -589,23 +628,40 @@ export default function AddPurchaseOrder({ onClose }) {
                     <tr key={idx}>
                       <td>
                         <div className="line-item-title">{item.code} — {item.name}</div>
-                        <div className="line-item-sub">{item.type === "charge" ? "Charge" : "Product"}</div>
+                        <div className="line-item-sub">
+                          {item.type === "charge" ? "Charge" : "Product"}
+                        </div>
                       </td>
                       <td>
-                        <input type="number" min="0" value={item.qty} onChange={(e) => updateItem(idx, "qty", e.target.value)} />
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.qty}
+                          onChange={(e) => updateItem(idx, "qty", e.target.value)}
+                        />
                       </td>
                       <td>
-                        <input type="number" min="0" value={item.price} onChange={(e) => updateItem(idx, "price", e.target.value)} />
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.price}
+                          onChange={(e) => updateItem(idx, "price", e.target.value)}
+                        />
                       </td>
                       <td>
-                        <select value={item.taxType} onChange={(e) => updateItem(idx, "taxType", e.target.value)}>
+                        <select
+                          value={item.taxType}
+                          onChange={(e) => updateItem(idx, "taxType", e.target.value)}
+                        >
                           <option>Exclusive</option>
                           <option>Inclusive</option>
                         </select>
                       </td>
                       <td>{format(total)}</td>
                       <td>
-                        <button className="row-delete" onClick={() => removeItem(idx)}>✕</button>
+                        <button className="row-delete" onClick={() => removeItem(idx)}>
+                          ✕
+                        </button>
                       </td>
                     </tr>
                   );
@@ -618,12 +674,23 @@ export default function AddPurchaseOrder({ onClose }) {
             <div className="erp-left">
               <div className="erp-input-row">
                 <label>Discount on All (%)</label>
-                <input type="number" min="0" max="100" value={discountAll} onChange={e => setDiscountAll(e.target.value)} />
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={discountAll}
+                  onChange={(e) => setDiscountAll(e.target.value)}
+                />
               </div>
 
               <div className="erp-input-row">
                 <label>Amount Paid</label>
-                <input type="number" min="0" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} />
+                <input
+                  type="number"
+                  min="0"
+                  value={paidAmount}
+                  onChange={(e) => setPaidAmount(e.target.value)}
+                />
               </div>
             </div>
 
@@ -637,11 +704,16 @@ export default function AddPurchaseOrder({ onClose }) {
           </div>
 
           <div className="addSales-actions">
-            <button className="btn-ghost" onClick={handlePayNow}>Pay Now</button>
-            <button className="btn-warning" onClick={handleCreditPurchase}>Credit Purchase</button>
-            <button className="btn-primary" onClick={handleSaveAndCreateInvoice}>Save & Create Purchase Invoice</button>
+            <button className="btn-ghost" onClick={handlePayNow} disabled={saving}>
+              {saving ? "Saving..." : "Pay Now"}
+            </button>
+            <button className="btn-warning" onClick={handleCreditPurchase} disabled={saving}>
+              {saving ? "Saving..." : "Credit Purchase"}
+            </button>
+            <button className="btn-primary" onClick={handleSaveAndCreateInvoice} disabled={saving}>
+              {saving ? "Saving..." : "Save & Create Purchase Invoice"}
+            </button>
           </div>
-
         </div>
       </div>
     </div>
