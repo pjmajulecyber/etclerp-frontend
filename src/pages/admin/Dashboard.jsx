@@ -329,7 +329,7 @@ export default function Dashboard() {
         <div className="dashboardHeader-wrapper">
           <div className="dashboard-header">
             <div>
-              <h2>Good Morning, Philip 👋</h2>
+              <h2>Good Day, Team 👋</h2>
               <p>Here’s what’s happening with your business.</p>
             </div>
 
