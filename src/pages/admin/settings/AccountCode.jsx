@@ -184,11 +184,11 @@ const DOCX_ACCOUNTS = [
   { code: "44999", name: "Total Capital", type: "REVENUE", parent: "44000", isSystem: true },
 
   // ================= COST OF GOODS SOLD =================
-  { code: "45010", name: "COGS - Shanta Gold", type: "COGS", isSystem: true },
-  { code: "45020", name: "COGS - Lake Steel Industries", type: "COGS", isSystem: true },
-  { code: "45030", name: "COGS - Lodhia Industries", type: "COGS", isSystem: true },
-  { code: "45040", name: "COGS - Tanzania Breweries Limited", type: "COGS", isSystem: true },
-  { code: "45050", name: "COGS - Steel Master Industries", type: "COGS", isSystem: true },
+  { code: "45010", name: "Shanta Gold", type: "COGS", isSystem: true },
+  { code: "45020", name: "Lake Steel Industries", type: "COGS", isSystem: true },
+  { code: "45030", name: "Lodhia Industries", type: "COGS", isSystem: true },
+  { code: "45040", name: "Tanzania Breweries Limited", type: "COGS", isSystem: true },
+  { code: "45050", name: "Steel Master Industries", type: "COGS", isSystem: true },
   { code: "45060", name: "COGS - Muhimbili National Hospital", type: "COGS", isSystem: true },
   { code: "45070", name: "COGS - Tanzania Biotech Products ltd", type: "COGS", isSystem: true },
   { code: "45080", name: "COGS - Mufindi Papermill industries", type: "COGS", isSystem: true },

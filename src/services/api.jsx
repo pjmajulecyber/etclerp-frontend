@@ -1,9 +1,10 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
+const API_ROOT = BASE_URL ? `${BASE_URL}/api/` : "/api/";
 
 const API = axios.create({
-  baseURL: `${BASE_URL}/api/`,
+  baseURL: API_ROOT,
 });
 
 const getAccessToken = () => localStorage.getItem("access");
@@ -60,7 +61,9 @@ API.interceptors.response.use(
       status === 401 ||
       data?.code === "token_not_valid" ||
       data?.detail === "Given token not valid for any token type" ||
-      data?.messages?.some((msg) => msg?.message?.toLowerCase().includes("token is expired"));
+      data?.messages?.some((msg) =>
+        msg?.message?.toLowerCase().includes("token is expired")
+      );
 
     if (isTokenExpired && !originalRequest?._retry) {
       if (isRefreshing) {
@@ -86,9 +89,10 @@ API.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post(`${BASE_URL}/api/token/refresh/`, {
-          refresh,
-        });
+        const response = await axios.post(
+          BASE_URL ? `${BASE_URL}/api/token/refresh/` : "/api/token/refresh/",
+          { refresh }
+        );
 
         const newAccess = response.data.access;
         const newRefresh = response.data.refresh;
@@ -104,7 +108,7 @@ API.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         clearTokens();
-        window.location.href = "/login";
+        window.location.href = "/login";   
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
