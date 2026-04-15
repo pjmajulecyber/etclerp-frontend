@@ -1,3 +1,6 @@
+
+
+
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -31,12 +34,13 @@ const normalizeCategory = (item) => ({
 });
 
 const normalizeExpense = (item, categoryMap = {}) => {
-  const nestedCategory = item?.category && typeof item.category === "object" ? item.category : null;
+  const nestedCategory =
+    item?.category && typeof item.category === "object" ? item.category : null;
 
   const code = String(
-    item?.reference ??
-      item?.code ??
+    item?.code ??
       item?.expense_code ??
+      item?.reference ??
       nestedCategory?.code ??
       ""
   ).trim();
@@ -255,6 +259,7 @@ export default function ExpensesList() {
     try {
       const payload = {
         expense_date: formDate,
+        code: formCode,
         reference: formCode,
         description: formDescription,
         amount: Number(formAmount),
@@ -275,7 +280,7 @@ export default function ExpensesList() {
       const localRow = {
         id: savedItem?.id ?? editing ?? Date.now(),
         date: savedItem?.expense_date ?? savedItem?.date ?? formDate,
-        code: savedItem?.reference ?? formCode,
+        code: savedItem?.code ?? savedItem?.reference ?? formCode,
         category: savedItem?.category_name ?? selectedCategory.name,
         categoryId: savedItem?.category ?? selectedCategory.id,
         description: savedItem?.description ?? formDescription,
@@ -295,7 +300,12 @@ export default function ExpensesList() {
       await loadExpenses();
     } catch (err) {
       console.error("Save expense failed:", err?.response?.data || err);
-      alert("Failed to save expense");
+      alert(
+        "Failed to save expense: " +
+          (err?.response?.data?.detail ||
+            JSON.stringify(err?.response?.data) ||
+            err.message)
+      );
     }
   };
 
