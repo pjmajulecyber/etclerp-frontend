@@ -1,7 +1,3 @@
-
-
-
-// src/pages/admin/Dashboard.jsx
 import "./Dashboard.css";
 import { useState, useEffect } from "react";
 import {
@@ -102,7 +98,7 @@ export default function Dashboard() {
   });
 
   /* ===============================
-     FALLBACK DATA (UNCHANGED)
+     FALLBACK DATA
   ================================= */
 
   const fallbackSummary = {
@@ -175,21 +171,17 @@ export default function Dashboard() {
         });
 
       } catch (err) {
-
         if (err.name !== "AbortError") {
           setError(e => ({ ...e, summary: err.message }));
           setSummaryValues(fallbackSummary);
         }
-
       } finally {
         setLoading(l => ({ ...l, summary: false }));
       }
     }
 
     loadSummary();
-
     return () => ctrl.abort();
-
   }, [year, period]);
 
   /* ===============================
@@ -197,16 +189,13 @@ export default function Dashboard() {
   ================================= */
 
   useEffect(() => {
-
     const ctrl = new AbortController();
 
     async function loadLists() {
-
       setLoading(l => ({ ...l, lists: true }));
       setError(e => ({ ...e, lists: null }));
 
       try {
-
         const [
           stockRes,
           expRes,
@@ -228,34 +217,25 @@ export default function Dashboard() {
         setDocuments(Array.isArray(docsRes) ? docsRes : fallbackDocuments);
 
       } catch (err) {
-
         if (err.name !== "AbortError") {
-
           setError(e => ({ ...e, lists: err.message }));
-
           setStockStatus(fallbackStockStatus);
           setPendingExpenses(fallbackPendingExpenses);
           setWasteOilStock(fallbackWasteOilStock);
           setCustomerStatements(fallbackCustomerStatements);
           setDocuments(fallbackDocuments);
-
         }
-
       } finally {
-
         setLoading(l => ({ ...l, lists: false }));
-
       }
     }
 
     loadLists();
-
     return () => ctrl.abort();
-
   }, [year]);
 
   /* ===============================
-     UI DATA BUILD (UNCHANGED)
+     UI DATA BUILD
   ================================= */
 
   const summary = [
@@ -303,11 +283,6 @@ export default function Dashboard() {
     }
   ];
 
-  /* ===============================
-     ORIGINAL JSX CONTINUES BELOW
-     (UNCHANGED)
-  ================================= */
-
   const filteredStock = stockStatus;
   const filteredExpenses = pendingExpenses;
   const filteredWasteOil = wasteOilStock;
@@ -320,7 +295,14 @@ export default function Dashboard() {
     const matchSearch = doc.name.toLowerCase().includes(docSearch.toLowerCase());
     return matchCategory && matchYear && matchStatus && matchSearch;
   });
- 
+
+  const DASHBOARD_PREVIEW_LIMIT = 4;
+
+  const previewStock = filteredStock.slice(0, DASHBOARD_PREVIEW_LIMIT);
+  const previewExpenses = filteredExpenses.slice(0, DASHBOARD_PREVIEW_LIMIT);
+  const previewWasteOil = filteredWasteOil.slice(0, DASHBOARD_PREVIEW_LIMIT);
+  const previewCustomers = filteredCustomers.slice(0, DASHBOARD_PREVIEW_LIMIT);
+  const previewDocuments = filteredDocuments.slice(0, DASHBOARD_PREVIEW_LIMIT);
 
   return (
     <div className="dashboard">
@@ -397,7 +379,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStock.map((item, i) => (
+                    {previewStock.map((item, i) => (
                       <tr key={i}>
                         <td>{item.product}</td>
                         <td>{item.available} Lts</td>
@@ -430,7 +412,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredExpenses.map((exp) => (
+                    {previewExpenses.map((exp) => (
                       <tr key={exp.id}>
                         <td>{exp.code}</td>
                         <td>{exp.name}</td>
@@ -459,7 +441,7 @@ export default function Dashboard() {
               <div className="table-responsive">
                 <table>
                   <tbody>
-                    {filteredWasteOil.map((item, i) => (
+                    {previewWasteOil.map((item, i) => (
                       <tr key={i}>
                         <td>{item.date}</td>
                         <td>
@@ -497,7 +479,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCustomers.map((c, i) => (
+                    {previewCustomers.map((c, i) => (
                       <tr key={i}>
                         <td>{c.code}</td>
                         <td>{c.name}</td>
@@ -556,7 +538,7 @@ export default function Dashboard() {
             <div className="table-responsive">
               <table>
                 <tbody>
-                  {filteredDocuments.map((doc, i) => (
+                  {previewDocuments.map((doc, i) => (
                     <tr key={i}>
                       <td>{doc.name}</td>
                       <td>{doc.category}</td>
@@ -574,7 +556,7 @@ export default function Dashboard() {
                   ))}
                 </tbody>
               </table>
-            </div> 
+            </div>
           </div>
         </div>
 
