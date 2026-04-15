@@ -239,3 +239,11 @@
     width: 100%;
   }
 }
+
+.pagination-bar{
+  margin-top: 14px;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:12px;
+}

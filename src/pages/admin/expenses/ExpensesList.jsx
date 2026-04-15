@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -34,22 +33,20 @@ const normalizeCategory = (item) => ({
 const normalizeExpense = (item, categoryMap = {}) => {
   const nestedCategory = item?.category && typeof item.category === "object" ? item.category : null;
 
-  const code =
-    String(
-      item?.reference ??
-        item?.code ??
-        item?.expense_code ??
-        nestedCategory?.code ??
-        ""
-    ).trim();
+  const code = String(
+    item?.reference ??
+      item?.code ??
+      item?.expense_code ??
+      nestedCategory?.code ??
+      ""
+  ).trim();
 
-  const categoryName =
-    String(
-      item?.category_name ??
-        nestedCategory?.name ??
-        categoryMap[code] ??
-        ""
-    ).trim();
+  const categoryName = String(
+    item?.category_name ??
+      nestedCategory?.name ??
+      categoryMap[code] ??
+      ""
+  ).trim();
 
   return {
     id: item?.id,
@@ -67,12 +64,6 @@ export default function ExpensesList() {
   const [expenses, setExpenses] = useState([]);
   const [categoriesDB, setCategoriesDB] = useState([]);
   const [categoryMap, setCategoryMap] = useState(INITIAL_CODE_CATEGORY_MAP);
-  
-  useEffect(() => {
-    sessionStorage.setItem("expenses_list", JSON.stringify(expenses));
-  
-    window.dispatchEvent(new Event("expenses_list_updated"));
-  }, [expenses]);
 
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterYear, setFilterYear] = useState("all");
@@ -92,7 +83,14 @@ export default function ExpensesList() {
   const [categoryName, setCategoryName] = useState("");
 
   const tableRef = useRef(null);
+
   const [rowsPerPage] = useState(100);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    sessionStorage.setItem("expenses_list", JSON.stringify(expenses));
+    window.dispatchEvent(new Event("expenses_list_updated"));
+  }, [expenses]);
 
   const loadCategories = async () => {
     try {
@@ -179,6 +177,24 @@ export default function ExpensesList() {
     });
   }, [expenses, filterMonth, filterYear, filterCode]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterMonth, filterYear, filterCode]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+
+  const paginatedExpenses = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return filtered.slice(start, end);
+  }, [filtered, currentPage, rowsPerPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const totals = useMemo(() => {
     const total = filtered.reduce((s, r) => s + Number(r.amount || 0), 0);
     const requested = filtered
@@ -253,7 +269,7 @@ export default function ExpensesList() {
         savedItem = res?.data ?? null;
       } else {
         const res = await API.post("expenses/expenses/", payload);
-        savedItem = res?.data ?? null; 
+        savedItem = res?.data ?? null;
       }
 
       const localRow = {
@@ -317,41 +333,35 @@ export default function ExpensesList() {
     }
   };
 
-    const approveExpense = async (id) => {
-      try {
-        await API.patch(`expenses/expenses/${id}/`, {
-            status: "approved",
-          });
+  const approveExpense = async (id) => {
+    try {
+      await API.patch(`expenses/expenses/${id}/`, {
+        status: "approved",
+      });
 
-          setExpenses((prev) =>
-            prev.map((p) =>
-              p.id === id ? { ...p, status: "approved" } : p
-            )
-          );
+      setExpenses((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: "approved" } : p))
+      );
+    } catch (err) {
+      console.error("Approve failed:", err?.response?.data || err);
+      alert("Failed to approve");
+    }
+  };
 
-        } catch (err) {
-          console.error("Approve failed:", err?.response?.data || err);
-          alert("Failed to approve");
-        }
-      };
+  const rejectExpense = async (id) => {
+    try {
+      await API.patch(`expenses/expenses/${id}/`, {
+        status: "rejected",
+      });
 
-    const rejectExpense = async (id) => {
-      try {
-        await API.patch(`expenses/expenses/${id}/`, {
-          status: "rejected",
-        });
-
-        setExpenses((prev) =>
-          prev.map((p) =>
-            p.id === id ? { ...p, status: "rejected" } : p
-          )
-        );
-
-      } catch (err) {
-        console.error("Reject failed:", err?.response?.data || err);
-        alert("Failed to reject");
-      }
-    };
+      setExpenses((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: "rejected" } : p))
+      );
+    } catch (err) {
+      console.error("Reject failed:", err?.response?.data || err);
+      alert("Failed to reject");
+    }
+  };
 
   const exportCSV = () => {
     const headers = ["Date", "Code", "Category", "Description", "Amount", "Status"];
@@ -425,66 +435,67 @@ export default function ExpensesList() {
         </div>
 
         <div className="header-actions">
-        <div className="header-actions">
-  <div className="header-row">
+          <div className="header-actions">
+            <div className="header-row">
+              <div className="left-actions">
+                <button className="btn btn-primary add-expense" onClick={openAddExpense}>
+                  + Add Expense
+                </button>
 
-    {/* LEFT: ADD BUTTONS */}
-    <div className="left-actions">
-      <button className="btn btn-primary add-expense" onClick={openAddExpense}>
-        + Add Expense
-      </button>
+                <button className="btn btn-ghost" onClick={openAddCategory}>
+                  + Add Category
+                </button>
+              </div>
 
-      <button className="btn btn-ghost" onClick={openAddCategory}>
-        + Add Category
-      </button>
-    </div>
+              <div className="filters-inline">
+                <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)}>
+                  <option value="all">All months</option>
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const d = new Date();
+                    d.setMonth(d.getMonth() - i);
+                    const key = d.toISOString().slice(0, 7);
+                    const label = d.toLocaleString(undefined, {
+                      month: "short",
+                      year: "numeric",
+                    });
+                    return (
+                      <option value={key} key={key}>
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
 
-    {/* CENTER: FILTERS */}
-    <div className="filters-inline">
-      <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)}>
-        <option value="all">All months</option>
-        {Array.from({ length: 12 }).map((_, i) => {
-          const d = new Date();
-          d.setMonth(d.getMonth() - i);
-          const key = d.toISOString().slice(0, 7);
-          const label = d.toLocaleString(undefined, {
-            month: "short",
-            year: "numeric",
-          });
-          return <option value={key} key={key}>{label}</option>;
-        })}
-      </select>
+                <select value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
+                  <option value="all">All years</option>
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const y = new Date().getFullYear() - i;
+                    return (
+                      <option key={y} value={String(y)}>
+                        {y}
+                      </option>
+                    );
+                  })}
+                </select>
 
-      <select value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
-        <option value="all">All years</option>
-        {Array.from({ length: 5 }).map((_, i) => {
-          const y = new Date().getFullYear() - i;
-          return <option key={y} value={String(y)}>{y}</option>;
-        })}
-      </select>
+                <input
+                  placeholder="Code"
+                  value={filterCode}
+                  onChange={(e) => setFilterCode(e.target.value)}
+                />
+              </div>
 
-      <input
-        placeholder="Code"
-        value={filterCode}
-        onChange={(e) => setFilterCode(e.target.value)}
-      />
-    </div>
-
-    {/* RIGHT: EXPORT */}
-    <div className="action-buttons">
-      <button className="btn btn-ghost" onClick={exportCSV}>
-        Export CSV
-      </button>
-      <button className="btn btn-ghost" onClick={exportPDF}>
-        Export PDF
-      </button>
-    </div>
-  </div>
-</div>
-</div>
-          
-                  
-              
+              <div className="action-buttons">
+                <button className="btn btn-ghost" onClick={exportCSV}>
+                  Export CSV
+                </button>
+                <button className="btn btn-ghost" onClick={exportPDF}>
+                  Export PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </header>
 
       <main className="expenses-main">
@@ -503,7 +514,7 @@ export default function ExpensesList() {
               </thead>
 
               <tbody>
-                {filtered.length === 0 && (
+                {paginatedExpenses.length === 0 && (
                   <tr>
                     <td colSpan={6} className="empty">
                       No expenses found
@@ -511,7 +522,7 @@ export default function ExpensesList() {
                   </tr>
                 )}
 
-                {filtered.slice(0, rowsPerPage).map((r) => (
+                {paginatedExpenses.map((r) => (
                   <tr key={r.id}>
                     <td>{r.date}</td>
                     <td>{r.code}</td>
@@ -554,17 +565,35 @@ export default function ExpensesList() {
                     <strong>Totals</strong>
                   </td>
                   <td style={{ textAlign: "right" }}>
-                    <strong>
-                      {filtered
-                        .reduce((s, r) => s + Number(r.amount || 0), 0)
-                        .toLocaleString()}
-                    </strong>
+                    <strong>{totals.total.toLocaleString()}</strong>
                   </td>
                   <td></td>
                 </tr>
               </tfoot>
             </table>
           </div>
+        </div>
+
+        <div className="pagination-bar">
+          <button
+            className="btn btn-ghost"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            Previous
+          </button>
+
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            className="btn btn-ghost"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Next
+          </button>
         </div>
       </main>
 
