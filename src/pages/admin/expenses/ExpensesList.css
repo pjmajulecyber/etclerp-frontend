@@ -91,7 +91,7 @@
 }
 .btn-primary{
   background:var(--accent);
-  color:#159d0e;
+  color:#0e1a9d;
 }
 .btn-primary.filled{
   background:var(--accent-2);
@@ -113,7 +113,7 @@
 
 /* scroll area to keep table header sticky */
 .table-scroll{
-  max-height: 420px;
+  max-height: 1000px;
   overflow:auto;
 }
 
