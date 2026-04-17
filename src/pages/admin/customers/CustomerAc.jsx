@@ -1,3 +1,4 @@
+
 // src/pages/admin/customers/modules/CustomerAccount.jsx
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -34,7 +35,6 @@ export default function CustomerAccount() {
 
   console.log("PARAMS 👉", useParams());
   console.log("CUSTOMER KEY 👉", customerKey);
-
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -243,9 +243,15 @@ export default function CustomerAccount() {
 
   const txWithRunning = useMemo(() => {
     let running = 0;
+
     return filteredTx.map((t) => {
-      running += num(t.credit) - num(t.debit);
-      return { ...t, running };
+      running += num(t.debit) - num(t.credit);
+
+      return {
+        ...t,
+        running,
+        displayRunning: Math.max(running, 0),
+      };
     });
   }, [filteredTx]);
 
@@ -258,8 +264,9 @@ export default function CustomerAccount() {
       totalDebit += num(t.debit);
     });
 
-    const balance = totalCredit - totalDebit;
-    const overdue = balance < 0 ? Math.abs(balance) : 0;
+    const rawBalance = totalDebit - totalCredit;
+    const balance = Math.max(rawBalance, 0);
+    const overdue = Math.max(rawBalance, 0);
 
     return { totalCredit, totalDebit, balance, overdue };
   }, [txWithRunning]);
@@ -326,7 +333,7 @@ export default function CustomerAccount() {
         `"${String(r.product || "").replace(/"/g, '""')}"`,
         num(r.credit).toFixed(2),
         num(r.debit).toFixed(2),
-        num(r.running).toFixed(2),
+        num(r.displayRunning).toFixed(2),
       ].join(","));
     });
 
@@ -673,14 +680,19 @@ export default function CustomerAccount() {
               <button className="btn btn-ghost" onClick={openAddModal}>Add Payment</button>
               <button className="btn btn-ghost" onClick={generateCSV}>Export CSV</button>
               <button className="btn btn-ghost" onClick={exportPDF}>Export PDF</button>
-              <button className="btn btn-primary" onClick={() => navigate("/admin/customers/statement-preview", {
-                state: {
-                  customer,
-                  transactions: txWithRunning,
-                  totals,
-                  buckets: agingBuckets,
-                },
-              })}>
+              <button
+                className="btn btn-primary"
+                onClick={() =>
+                  navigate("/admin/customers/statement-preview", {
+                    state: {
+                      customer,
+                      transactions: txWithRunning,
+                      totals,
+                      buckets: agingBuckets,
+                    },
+                  })
+                }
+              >
                 Create Statement
               </button>
             </div>
@@ -712,7 +724,7 @@ export default function CustomerAccount() {
                       <td>{r.product}</td>
                       <td className="text-right">{money(r.credit)}</td>
                       <td className="text-right">{money(r.debit)}</td>
-                      <td className="text-right">{money(r.running)}</td>
+                      <td className="text-right">{money(r.displayRunning)}</td>
                     </tr>
                   ))
                 )}
@@ -852,4 +864,4 @@ export default function CustomerAccount() {
       )}
     </div>
   );
-} 
+}
