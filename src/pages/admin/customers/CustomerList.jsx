@@ -1,88 +1,25 @@
-
-
 // src/pages/admin/Customers/CustomerList.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CustomerList.css";
-import { FiPlus, FiSearch, FiEye, FiCreditCard } from "react-icons/fi";
+import { FiPlus, FiSearch, FiEye } from "react-icons/fi";
 import { getCustomers, createCustomer } from "../../../services/CustomerService";
-import API from "../../../services/api";
+import API from "../../../services/api"; // optional: for debugging/extra lookups
 
 const MOCK_CUSTOMERS = [
-  {
-    code: "CU0001",
-    name: "Walk-in customer",
-    location: "Dar es Salaam",
-    phone: "255700000000",
-    email: "walkin@example.com",
-    opening_debit: 0,
-    debit: 333175.7,
-    credit: 333175.7,
-    balance: 0,
-    status: "ACTIVE",
-    isNew: false
-  }
+  { code: "CU0001", name: "Walk-in customer", location: "Dar es Salaam", phone: "255700000000", email: "walkin@example.com", totalDue: 333175.7, totalPaid: 333175.7, status: "active", isNew: false },
+  { code: "CU0002", name: "John P", location: "Moshi", phone: "97788754544", email: "john@gmail.com", totalDue: 1100.0, totalPaid: 0.0, status: "active", isNew: true },
+  { code: "CU0003", name: "Chris Moris", location: "Arusha", phone: "845457454545", email: "chris@gmail.com", totalDue: 0.0, totalPaid: 0.0, status: "inactive", isNew: false },
+  { code: "CU0004", name: "Moin", location: "Dar es Salaam", phone: "97545775454", email: "moin@yahoo.com", totalDue: 1100.0, totalPaid: 1100.0, status: "active", isNew: false },
+  { code: "CU0005", name: "Sundar", location: "Tanga", phone: "98475454544", email: "sunadar@gmail.com", totalDue: 0.0, totalPaid: 11000.0, status: "active", isNew: true },
+  { code: "CU0006", name: "Santosh", location: "Dodoma", phone: "9584645454", email: "santosh@gmail.com", totalDue: 0.0, totalPaid: 0.0, status: "inactive", isNew: false },
+  { code: "CU0007", name: "Vinit Hiremath", location: "Zanzibar", phone: "866022565988", email: "vinit@gmail.com", totalDue: 660.0, totalPaid: 660.0, status: "active", isNew: false }
 ];
-
-const normalizeCustomer = (item) => {
-  const openingDebit = Number(
-    item?.opening_debit ??
-    item?.opening_balance ??
-    0
-  );
-
-  const debit = Number(
-    item?.debit ??
-    item?.total_debit ??
-    0
-  );
-
-  const credit = Number(
-    item?.credit ??
-    item?.total_credit ??
-    item?.totalPaid ??
-    0
-  );
-
-  const balance = Number(
-    item?.balance ??
-    item?.overall_balance ??
-    (openingDebit + debit - credit)
-  );
-
-  return {
-    id: item?.id ?? item?.pk ?? null,
-    code: item?.code ?? "",
-    name: item?.name ?? "",
-    location: item?.location ?? item?.address ?? "",
-    phone: item?.phone ?? "",
-    email: item?.email ?? "",
-    address: item?.address ?? "",
-    tin: item?.tin ?? "",
-    vrn: item?.vrn ?? "",
-    receivable_account: item?.receivable_account ?? "",
-    receivable_account_code: item?.receivable_account_code ?? "",
-    opening_balance: Number(item?.opening_balance ?? openingDebit ?? 0),
-    opening_debit: openingDebit,
-    debit,
-    credit,
-    balance,
-    status: String(item?.status ?? "ACTIVE").toUpperCase(),
-    isNew: item?.isNew ?? false
-  };
-};
-
-const normalizeSalesList = (data) => {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.results)) return data.results;
-  if (Array.isArray(data?.sales)) return data.sales;
-  return [];
-};
 
 export default function CustomerList() {
   const navigate = useNavigate();
 
-  const [customers, setCustomers] = useState(MOCK_CUSTOMERS.map(normalizeCustomer));
+  const [customers, setCustomers] = useState(MOCK_CUSTOMERS);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -91,22 +28,6 @@ export default function CustomerList() {
 
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [createErrors, setCreateErrors] = useState(null);
-
-  const [showPayModal, setShowPayModal] = useState(false);
-  const [paymentErrors, setPaymentErrors] = useState(null);
-  const [paymentSaving, setPaymentSaving] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [customerSales, setCustomerSales] = useState([]);
-  const [salesLoading, setSalesLoading] = useState(false);
-
-  const [paymentForm, setPaymentForm] = useState({
-    sale: "",
-    amount: "",
-    payment_method: "CASH",
-    reference_number: "",
-    date: new Date().toISOString().slice(0, 10),
-    notes: ""
-  });
 
   const [newCustomer, setNewCustomer] = useState({
     id: null,
@@ -120,63 +41,56 @@ export default function CustomerList() {
     vrn: "",
     receivable_account: "",
     receivable_account_code: "",
-    opening_balance: 0,
-    status: "ACTIVE"
+    balance: 0,
+    status: "active"
   });
 
   useEffect(() => {
     loadCustomers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadCustomers = async () => {
     try {
       const res = await getCustomers();
-
-      let rawList = [];
-
+      // some APIs return { results: [...] }, some return array directly
       if (res?.data?.results && Array.isArray(res.data.results)) {
-        rawList = res.data.results;
+        setCustomers(res.data.results);
       } else if (Array.isArray(res?.data)) {
-        rawList = res.data;
+        setCustomers(res.data);
       } else if (Array.isArray(res?.data?.customers)) {
-        rawList = res.data.customers;
+        setCustomers(res.data.customers);
       } else {
-        console.warn("Unexpected customers response shape:", res?.data);
-        rawList = [];
+        // fallback if shape unexpected but object contains list somewhere
+        console.warn("Unexpected customers response shape, falling back if possible", res.data);
+        // try results, then data, else mock
+        setCustomers(res.data.results || res.data || MOCK_CUSTOMERS);
       }
-
-      setCustomers(rawList.map(normalizeCustomer));
     } catch (err) {
       console.error("API failed, using mock customers", err);
-      setCustomers(MOCK_CUSTOMERS.map(normalizeCustomer));
+      setCustomers(MOCK_CUSTOMERS);
     }
   };
 
   const summary = useMemo(() => {
     const total = customers.length;
-    const active = customers.filter(c => c.status === "ACTIVE").length;
-    const inactive = customers.filter(c => c.status !== "ACTIVE").length;
+    const active = customers.filter(c => c.status === "active").length;
+    const inactive = customers.filter(c => c.status !== "active").length;
     const newCustomers = customers.filter(c => c.isNew).length;
     return { total, active, inactive, newCustomers };
   }, [customers]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-
     return customers.filter(c => {
-      if (statusFilter !== "all") {
-        const normalizedStatus = statusFilter === "active" ? "ACTIVE" : "INACTIVE";
-        if (c.status !== normalizedStatus) return false;
-      }
-
+      if (statusFilter !== "all" && c.status !== statusFilter) return false;
       if (!q) return true;
-
       return (
         (c.code || "").toLowerCase().includes(q) ||
         (c.name || "").toLowerCase().includes(q) ||
-        (c.location || "").toLowerCase().includes(q) ||
-        (c.phone || "").toLowerCase().includes(q) ||
-        (c.email || "").toLowerCase().includes(q)
+        ((c.location || "")).toLowerCase().includes(q) ||
+        ((c.phone || "")).toLowerCase().includes(q) ||
+        ((c.email || "")).toLowerCase().includes(q)
       );
     });
   }, [customers, search, statusFilter]);
@@ -187,13 +101,11 @@ export default function CustomerList() {
   const pageTotals = useMemo(() => {
     return pageData.reduce(
       (acc, r) => {
-        acc.openingDebit += Number(r.opening_debit || 0);
-        acc.debit += Number(r.debit || 0);
-        acc.credit += Number(r.credit || 0);
-        acc.balance += Number(r.balance || 0);
+        acc.totalDue += Number(r.totalDue || 0);
+        acc.totalPaid += Number(r.totalPaid || 0);
         return acc;
       },
-      { openingDebit: 0, debit: 0, credit: 0, balance: 0 }
+      { totalDue: 0, totalPaid: 0 }
     );
   }, [pageData]);
 
@@ -203,7 +115,7 @@ export default function CustomerList() {
     const id = customer.id || customer.pk;
 
     if (!id) {
-      console.error("Customer has no ID:", customer);
+      console.error("❌ Customer has no ID:", customer);
       alert("Customer ID missing — check backend data");
       return;
     }
@@ -223,55 +135,50 @@ export default function CustomerList() {
     }));
   };
 
+  // ---- FIXED: use backend createCustomer (axios) so request goes to backend baseURL and includes auth header ----
   const handleSaveCustomer = async () => {
     if (!newCustomer.name) return;
 
+    // clear previous errors
     setCreateErrors(null);
 
+    // Build a minimal payload first (safer — many DRF serializers accept minimal fields)
     const minimalPayload = {
       name: newCustomer.name,
     };
-
     if (newCustomer.code) minimalPayload.code = newCustomer.code;
     if (newCustomer.phone) minimalPayload.phone = newCustomer.phone;
     if (newCustomer.email) minimalPayload.email = newCustomer.email;
-    if (newCustomer.address) minimalPayload.address = newCustomer.address;
-    if (newCustomer.tin) minimalPayload.tin = newCustomer.tin;
-    if (newCustomer.vrn) minimalPayload.vrn = newCustomer.vrn;
-    if (newCustomer.opening_balance) {
-      minimalPayload.opening_balance = Number(newCustomer.opening_balance);
-    }
-    if (newCustomer.status) {
-      minimalPayload.status = String(newCustomer.status).toUpperCase();
-    }
+    // Do NOT include receivable_account unless you can pass a numeric PK that exists.
+    // Do NOT include status if you're not sure which choice values are valid.
 
     try {
-      await createCustomer(minimalPayload);
+      // Attempt create with minimal safe payload
+      const res = await createCustomer(minimalPayload); // uses axios + baseURL + Authorization
+      // success — reload authoritative list from server
       await loadCustomers();
+      // optionally notify success
+      console.log("Customer created:", res.data);
     } catch (err) {
+      // If server responded with validation errors, show them
       if (err?.response?.data) {
         console.error("Create customer failed:", err.response.data);
         setCreateErrors(err.response.data);
       } else {
+        // Network or unexpected error — fallback to local insertion as before
         console.error("API save failed, using local fallback", err);
-
         const code = newCustomer.code || "CU" + Math.floor(Math.random() * 9000 + 1000);
-
-        const tableCustomer = normalizeCustomer({
+        const tableCustomer = {
           code,
           name: newCustomer.name,
           location: newCustomer.location,
           phone: newCustomer.phone,
           email: newCustomer.email,
-          opening_balance: Number(newCustomer.opening_balance || 0),
-          opening_debit: Number(newCustomer.opening_balance || 0),
-          debit: 0,
-          credit: 0,
-          balance: Number(newCustomer.opening_balance || 0),
+          totalDue: 0,
+          totalPaid: 0,
           status: newCustomer.status,
           isNew: true
-        });
-
+        };
         setCustomers(prev => [tableCustomer, ...prev]);
       }
     }
@@ -291,97 +198,9 @@ export default function CustomerList() {
       vrn: "",
       receivable_account: "",
       receivable_account_code: "",
-      opening_balance: 0,
-      status: "ACTIVE"
+      balance: 0,
+      status: "active"
     });
-  };
-
-  const openPayModal = async (customer) => {
-    if (!customer?.id) {
-      alert("Customer ID missing.");
-      return;
-    }
-
-    setSelectedCustomer(customer);
-    setPaymentErrors(null);
-    setShowPayModal(true);
-    setSalesLoading(true);
-    setCustomerSales([]);
-    setPaymentForm({
-      sale: "",
-      amount: "",
-      payment_method: "CASH",
-      reference_number: "",
-      date: new Date().toISOString().slice(0, 10),
-      notes: ""
-    });
-
-    try {
-      const res = await API.get(`sales/sales/?customer=${customer.id}`);
-      const sales = normalizeSalesList(res?.data);
-
-      const unpaidSales = sales.filter((s) => {
-        const outstanding = Number(s?.outstanding_amount ?? 0);
-        return outstanding > 0;
-      });
-
-      setCustomerSales(unpaidSales);
-    } catch (err) {
-      console.error("Failed to load customer sales:", err?.response?.data || err);
-      setPaymentErrors("Failed to load customer unpaid sales.");
-    } finally {
-      setSalesLoading(false);
-    }
-  };
-
-  const handlePaymentInput = (field, value) => {
-    setPaymentForm((prev) => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSavePayment = async () => {
-    if (!selectedCustomer?.id) {
-      alert("Customer missing.");
-      return;
-    }
-
-    if (!paymentForm.sale) {
-      alert("Please select a sale to pay.");
-      return;
-    }
-
-    if (!paymentForm.amount || Number(paymentForm.amount) <= 0) {
-      alert("Please enter a valid payment amount.");
-      return;
-    }
-
-    setPaymentSaving(true);
-    setPaymentErrors(null);
-
-    const payload = {
-      sale: Number(paymentForm.sale),
-      customer: Number(selectedCustomer.id),
-      amount: Number(paymentForm.amount),
-      payment_method: paymentForm.payment_method,
-      reference_number: paymentForm.reference_number || null,
-      date: paymentForm.date,
-      notes: paymentForm.notes || ""
-    };
-
-    try {
-      await API.post("payments/payments/", payload);
-      setShowPayModal(false);
-      setSelectedCustomer(null);
-      setCustomerSales([]);
-      await loadCustomers();
-    } catch (err) {
-      console.error("Create payment failed:", err?.response?.data || err);
-      setPaymentErrors(err?.response?.data || "Failed to save payment.");
-    } finally {
-      setPaymentSaving(false);
-    }
   };
 
   return (
@@ -428,22 +247,13 @@ export default function CustomerList() {
             <input
               placeholder="Search by code, name, phone, email or location..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
         </div>
 
         <div className="filter-right">
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-          >
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -466,9 +276,8 @@ export default function CustomerList() {
                 <th>Customer name</th>
                 <th>Location</th>
                 <th>Phone</th>
-                <th className="text-right">Opening Balance</th>
-                <th className="text-right">Debit</th>
-                <th className="text-right">Credit</th>
+                <th className="text-right">Total Due</th>
+                <th className="text-right">Total Paid</th>
                 <th className="text-right">Balance</th>
                 <th>Action</th>
               </tr>
@@ -476,10 +285,9 @@ export default function CustomerList() {
 
             <tbody>
               {pageData.map(c => {
-                const opening = Number(c.opening_debit || 0);
-                const debit = Number(c.debit || 0);
-                const credit = Number(c.credit || 0);
-                const balance = Number(c.balance || 0);
+                const due = Number(c.totalDue || 0);
+                const paid = Number(c.totalPaid || 0);
+                const balance = due - paid;
 
                 return (
                   <tr key={c.id || c.code}>
@@ -487,17 +295,13 @@ export default function CustomerList() {
                     <td>{c.name}</td>
                     <td>{c.location}</td>
                     <td>{c.phone}</td>
-                    <td className="text-right">{opening.toLocaleString()}</td>
-                    <td className="text-right">{debit.toLocaleString()}</td>
-                    <td className="text-right">{credit.toLocaleString()}</td>
+                    <td className="text-right">{due.toLocaleString()}</td>
+                    <td className="text-right">{paid.toLocaleString()}</td>
                     <td className="text-right">{balance.toLocaleString()}</td>
                     <td>
                       <div className="row-actions">
                         <button className="btn btn-view" onClick={() => handleViewAccount(c)}>
                           <FiEye /> View
-                        </button>
-                        <button className="btn btn-view" onClick={() => openPayModal(c)}>
-                          <FiCreditCard /> Pay
                         </button>
                       </div>
                     </td>
@@ -509,10 +313,9 @@ export default function CustomerList() {
             <tfoot>
               <tr className="totalsRow">
                 <td colSpan={4}><strong>Page Totals</strong></td>
-                <td className="text-right"><strong>{pageTotals.openingDebit.toLocaleString()}</strong></td>
-                <td className="text-right"><strong>{pageTotals.debit.toLocaleString()}</strong></td>
-                <td className="text-right"><strong>{pageTotals.credit.toLocaleString()}</strong></td>
-                <td className="text-right"><strong>{pageTotals.balance.toLocaleString()}</strong></td>
+                <td className="text-right"><strong>{pageTotals.totalDue.toLocaleString()}</strong></td>
+                <td className="text-right"><strong>{pageTotals.totalPaid.toLocaleString()}</strong></td>
+                <td className="text-right"><strong>{(pageTotals.totalDue - pageTotals.totalPaid).toLocaleString()}</strong></td>
                 <td></td>
               </tr>
             </tfoot>
@@ -522,7 +325,7 @@ export default function CustomerList() {
 
       <div className="customerList-pagination">
         <div>
-          Showing {filtered.length === 0 ? 0 : (page - 1) * rowsPerPage + 1} to {Math.min(page * rowsPerPage, filtered.length)} of {filtered.length} entries
+          Showing {(filtered.length === 0) ? 0 : (page - 1) * rowsPerPage + 1} to {Math.min(page * rowsPerPage, filtered.length)} of {filtered.length} entries
         </div>
 
         <div className="pagination-controls">
@@ -591,146 +394,26 @@ export default function CustomerList() {
               </div>
 
               <div className="customerModal-row">
-                <label>Opening Balance</label>
-                <input
-                  type="number"
-                  value={newCustomer.opening_balance}
-                  onChange={(e)=>handleCustomerInput("opening_balance",e.target.value)}
-                />
+                <label>Balance</label>
+                <input type="number" value={newCustomer.balance} onChange={(e)=>handleCustomerInput("balance",e.target.value)} />
               </div>
 
               <div className="customerModal-row">
                 <label>Status</label>
-                <select value={newCustomer.status} onChange={(e)=>handleCustomerInput("status",e.target.value.toUpperCase())}>
-                  <option value="ACTIVE">Active</option>
-                  <option value="INACTIVE">Inactive</option>
+                <select value={newCustomer.status} onChange={(e)=>handleCustomerInput("status",e.target.value)}>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
                 </select>
               </div>
-
-              {createErrors && (
-                <div style={{ color: "red", marginTop: "12px" }}>
-                  {JSON.stringify(createErrors)}
-                </div>
-              )}
             </div>
 
             <div className="customerModal-actions">
-              <button className="btn" onClick={() => setShowAddCustomer(false)}>Cancel</button>
+              <button className="btn" onClick={()=>setShowAddCustomer(false)}>Cancel</button>
               <button className="btn primary" onClick={handleSaveCustomer}>Save Customer</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showPayModal && (
-        <div className="customerModal-overlay">
-          <div className="customerModal-card">
-            <div className="customerModal-header">
-              <h3>Receive Payment</h3>
-            </div>
-
-            <div className="customerModal-body">
-              <div className="customerModal-row">
-                <label>Customer</label>
-                <input value={selectedCustomer?.name || ""} readOnly />
-              </div>
-
-              <div className="customerModal-row">
-                <label>Sale / Invoice</label>
-                <select
-                  value={paymentForm.sale}
-                  onChange={(e) => handlePaymentInput("sale", e.target.value)}
-                  disabled={salesLoading}
-                >
-                  <option value="">Select outstanding sale</option>
-                  {customerSales.map((sale) => (
-                    <option key={sale.id} value={sale.id}>
-                      {(sale.invoice_number || sale.invoice || `Sale ${sale.id}`)} - Outstanding: {Number(sale.outstanding_amount || 0).toLocaleString()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="customerModal-row">
-                <label>Amount</label>
-                <input
-                  type="number"
-                  value={paymentForm.amount}
-                  onChange={(e) => handlePaymentInput("amount", e.target.value)}
-                />
-              </div>
-
-              <div className="customerModal-row">
-                <label>Payment Method</label>
-                <select
-                  value={paymentForm.payment_method}
-                  onChange={(e) => handlePaymentInput("payment_method", e.target.value)}
-                >
-                  <option value="CASH">Cash</option>
-                  <option value="BANK">Bank Transfer</option>
-                  <option value="MOBILE">Mobile Money</option>
-                  <option value="CHEQUE">Cheque</option>
-                </select>
-              </div>
-
-              <div className="customerModal-row">
-                <label>Reference Number</label>
-                <input
-                  value={paymentForm.reference_number}
-                  onChange={(e) => handlePaymentInput("reference_number", e.target.value)}
-                />
-              </div>
-
-              <div className="customerModal-row">
-                <label>Date</label>
-                <input
-                  type="date"
-                  value={paymentForm.date}
-                  onChange={(e) => handlePaymentInput("date", e.target.value)}
-                />
-              </div>
-
-              <div className="customerModal-row">
-                <label>Notes</label>
-                <input
-                  value={paymentForm.notes}
-                  onChange={(e) => handlePaymentInput("notes", e.target.value)}
-                />
-              </div>
-
-              {salesLoading && (
-                <div style={{ marginTop: "12px" }}>Loading customer sales...</div>
-              )}
-
-              {paymentErrors && (
-                <div style={{ color: "red", marginTop: "12px" }}>
-                  {typeof paymentErrors === "string" ? paymentErrors : JSON.stringify(paymentErrors)}
-                </div>
-              )}
-            </div>
-
-git            <div className="customerModal-actions">
-              <button
-                className="btn"
-                onClick={() => {
-                  setShowPayModal(false);
-                  setSelectedCustomer(null);
-                  setCustomerSales([]);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn primary"
-                onClick={handleSavePayment}
-                disabled={paymentSaving}
-              >
-                {paymentSaving ? "Saving..." : "Save Payment"}
-              </button>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-}
+} 

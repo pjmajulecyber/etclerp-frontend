@@ -17,7 +17,7 @@ const setTokens = (access, refresh = null) => {
   }
 };
 
-const clearTokens = () => 
+const clearTokens = () => {
   localStorage.removeItem("access");
   localStorage.removeItem("refresh");
 };
