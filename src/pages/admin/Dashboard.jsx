@@ -296,7 +296,7 @@ export default function Dashboard() {
     return matchCategory && matchYear && matchStatus && matchSearch;
   });
 
-  const DASHBOARD_PREVIEW_LIMIT = 4;
+  const DASHBOARD_PREVIEW_LIMIT = 3;
 
   const previewStock = filteredStock.slice(0, DASHBOARD_PREVIEW_LIMIT);
   const previewExpenses = filteredExpenses.slice(0, DASHBOARD_PREVIEW_LIMIT);
