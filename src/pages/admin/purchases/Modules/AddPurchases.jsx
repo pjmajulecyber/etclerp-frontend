@@ -3,14 +3,6 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../../../../services/api";
 
-/*
-  Converted to Purchase Order component.
-  - All "customer" wording in the UI is now "supplier".
-  - Prefill respects incoming.saleData.supplier OR incoming.saleData.customer.
-  - Loads additional master endpoints.
-  - Saves purchases including items and returns backend response; navigation sends backend id to preview.
-*/
-
 const chargesDB = [
   { code: "CH-001", name: "Transport", price: 150000 },
   { code: "CH-002", name: "Handling", price: 25000 }
@@ -29,25 +21,11 @@ export default function AddPurchaseOrder({ onClose }) {
   const [productsDB, setProductsDB] = useState([]);
   const [depotsDB, setDepotsDB] = useState([]);
 
-  const [paymentsDB, setPaymentsDB] = useState([]);
-  const [customersDB, setCustomersDB] = useState([]);
-  const [expensesDB, setExpensesDB] = useState([]);
-  const [documentsDB, setDocumentsDB] = useState([]);
-  const [hrDB, setHrDB] = useState([]);
-  const [assetsDB, setAssetsDB] = useState([]);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [inventoryMeta, setInventoryMeta] = useState(null);
-
-  const handleClose = () => {
-    if (onClose) onClose();
-    else navigate("/admin/purchases");
-  };
-
   const [supplierSearch, setSupplierSearch] = useState("");
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [saleType, setSaleType] = useState("Final");
+  const [purchaseType, setPurchaseType] = useState("CASH");
   const [referenceNo, setReferenceNo] = useState("");
   const [depot, setDepot] = useState("");
 
@@ -67,8 +45,10 @@ export default function AddPurchaseOrder({ onClose }) {
     const onKey = (e) => {
       if (e.key === "Escape") handleClose();
     };
+
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "auto";
@@ -89,30 +69,10 @@ export default function AddPurchaseOrder({ onClose }) {
 
   const loadAllMasters = async () => {
     try {
-      const [
-        suppliersRes,
-        productsRes,
-        depotsRes,
-        paymentsRes,
-        customersRes,
-        expensesRes,
-        documentsRes,
-        hrRes,
-        assetsRes,
-        dashboardRes,
-        inventoryRes
-      ] = await Promise.all([
+      const [suppliersRes, productsRes, depotsRes] = await Promise.all([
         API.get("/suppliers/").catch(() => ({ data: [] })),
         API.get("/inventory/products/").catch(() => ({ data: [] })),
         API.get("/inventory/depots/").catch(() => ({ data: [] })),
-        API.get("/payments/").catch(() => ({ data: [] })),
-        API.get("/customers/").catch(() => ({ data: [] })),
-        API.get("/expenses/").catch(() => ({ data: [] })),
-        API.get("/documents/").catch(() => ({ data: [] })),
-        API.get("/hr/").catch(() => ({ data: [] })),
-        API.get("/assets/").catch(() => ({ data: [] })),
-        API.get("/dashboard/").catch(() => ({ data: null })),
-        API.get("/inventory/").catch(() => ({ data: null }))
       ]);
 
       const suppliers = unwrapList(suppliersRes).map((s) => ({
@@ -136,15 +96,6 @@ export default function AddPurchaseOrder({ onClose }) {
         name: d.name || d.code || `Depot ${d.id}`
       }));
       setDepotsDB(depots);
-
-      setPaymentsDB(paymentsRes?.data ?? paymentsRes ?? []);
-      setCustomersDB(customersRes?.data ?? customersRes ?? []);
-      setExpensesDB(expensesRes?.data ?? expensesRes ?? []);
-      setDocumentsDB(documentsRes?.data ?? documentsRes ?? []);
-      setHrDB(hrRes?.data ?? hrRes ?? []);
-      setAssetsDB(assetsRes?.data ?? assetsRes ?? []);
-      setDashboardData(dashboardRes?.data ?? dashboardRes ?? null);
-      setInventoryMeta(inventoryRes?.data ?? inventoryRes ?? null);
     } catch (err) {
       console.error("loadAllMasters error:", err);
     }
@@ -171,11 +122,7 @@ export default function AddPurchaseOrder({ onClose }) {
           setSupplierSearch(`${incomingSupplier}`);
         }
       } else {
-        const code =
-          incomingSupplier.code ??
-          incomingSupplier.supplier_code ??
-          "";
-
+        const code = incomingSupplier.code ?? incomingSupplier.supplier_code ?? "";
         const name =
           incomingSupplier.name ??
           incomingSupplier.supplier_name ??
@@ -192,8 +139,14 @@ export default function AddPurchaseOrder({ onClose }) {
     }
 
     if (incoming.date) setDate(incoming.date);
-    if (incoming.saleType) setSaleType(incoming.saleType);
     if (incoming.referenceNo) setReferenceNo(incoming.referenceNo);
+
+    if (incoming.purchaseType) {
+      setPurchaseType(String(incoming.purchaseType).toUpperCase());
+    } else if (incoming.saleType) {
+      const mapped = String(incoming.saleType).toLowerCase() === "credit" ? "CREDIT" : "CASH";
+      setPurchaseType(mapped);
+    }
 
     if (incoming.depot) {
       if (typeof incoming.depot === "object") {
@@ -225,8 +178,12 @@ export default function AddPurchaseOrder({ onClose }) {
     if (incoming.paidAmount !== undefined && incoming.paidAmount !== null) {
       setPaidAmount(Number(incoming.paidAmount) || 0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incoming, suppliersDB, depotsDB]);
+  }, [incoming, suppliersDB]);
+
+  const handleClose = () => {
+    if (onClose) onClose();
+    else navigate("/admin/purchases");
+  };
 
   const filteredSuppliers = suppliersDB.filter((s) =>
     `${s.code} ${s.name}`.toLowerCase().includes(supplierSearch.toLowerCase())
@@ -313,7 +270,9 @@ export default function AddPurchaseOrder({ onClose }) {
     let totalTax = 0;
 
     items.forEach((item) => {
-      const lineTotal = (Number(item.qty) || 0) * (Number(item.price) || 0);
+      const qty = Number(item.qty) || 0;
+      const price = Number(item.price) || 0;
+      const lineTotal = qty * price;
 
       if ((item.taxType || "").toLowerCase() === "exclusive") {
         subtotal += lineTotal;
@@ -327,14 +286,14 @@ export default function AddPurchaseOrder({ onClose }) {
 
     const discountAmount = subtotal * ((Number(discountAll) || 0) / 100);
     const grandTotal = subtotal + totalTax - discountAmount;
-    const outstanding = grandTotal - (Number(paidAmount) || 0);
+    const outstanding = Math.max(grandTotal - (Number(paidAmount) || 0), 0);
 
     return { subtotal, totalTax, discountAmount, grandTotal, outstanding };
   }, [items, discountAll, paidAmount]);
 
   const format = (n) => (Number(n) || 0).toLocaleString();
 
-  const savePurchaseToAPI = async (finalCalculations, finalPaidAmount, previewSaleType) => {
+  const savePurchaseToAPI = async (finalCalculations, finalPaidAmount, selectedType) => {
     if (!selectedSupplier || !selectedSupplier.id) {
       alert("Supplier is required");
       return null;
@@ -352,13 +311,13 @@ export default function AddPurchaseOrder({ onClose }) {
 
     try {
       const payloadItems = items.map((it) => {
+        const qty = Number(it.qty || 0);
+        const unitPrice = Number(it.price || 0);
+
         const row = {
           description: it.name || "",
-          quantity: Number(it.qty || 0),
-          unit_price: Number(it.price || 0),
-          line_total: Number(
-            ((Number(it.qty || 0) * Number(it.price || 0)) || 0).toFixed(2)
-          )
+          quantity: qty,
+          unit_price: unitPrice
         };
 
         if (it.type === "product" && it.productId) {
@@ -368,27 +327,16 @@ export default function AddPurchaseOrder({ onClose }) {
         return row;
       });
 
-      const status =
-        Number(finalCalculations.outstanding || 0) <= 0
-          ? "PAID"
-          : Number(finalPaidAmount || 0) > 0
-          ? "PARTIAL"
-          : "UNPAID";
+      const normalizedType = String(selectedType || purchaseType || "CASH").toUpperCase();
 
       const payload = {
         invoice_number: invoiceNumber,
         date,
         supplier: selectedSupplier.id,
-        purchase_type:
-          String(previewSaleType || saleType || "Final").toUpperCase(),
+        purchase_type: normalizedType,
         depot: Number(depot),
-        subtotal: Number(finalCalculations.subtotal || 0),
         tax_amount: Number(finalCalculations.totalTax || 0),
         discount_amount: Number(finalCalculations.discountAmount || 0),
-        total_amount: Number(finalCalculations.grandTotal || 0),
-        paid_amount: Number(finalPaidAmount || 0),
-        outstanding_amount: Number(finalCalculations.outstanding || 0),
-        status,
         items: payloadItems
       };
 
@@ -397,6 +345,31 @@ export default function AddPurchaseOrder({ onClose }) {
       const res = await API.post("/purchases/", payload);
       const data = res?.data ?? null;
       console.log("Purchase saved, backend response:", data);
+
+      // create supplier payment only if paid amount > 0
+      if (Number(finalPaidAmount || 0) > 0 && data?.id) {
+        try {
+          await API.post("/purchases/payments/", {
+            purchase: data.id,
+            supplier: selectedSupplier.id,
+            amount: Number(finalPaidAmount || 0),
+            payment_method: "CASH",
+            reference_number: referenceNo || null,
+            date
+          });
+        } catch (paymentErr) {
+          console.error("Purchase payment save failed:", paymentErr?.response?.data || paymentErr.message);
+          alert(
+            "Purchase saved, but payment failed: " +
+              (
+                paymentErr?.response?.data?.detail ||
+                JSON.stringify(paymentErr?.response?.data) ||
+                paymentErr.message
+              )
+          );
+        }
+      }
+
       return data;
     } catch (err) {
       console.error("Purchase API save failed:", err?.response?.data || err.message);
@@ -417,6 +390,7 @@ export default function AddPurchaseOrder({ onClose }) {
     setSaving(true);
 
     try {
+      const selectedType = overrideType || purchaseType;
       const finalCalculations = forcePaid
         ? { ...calculations, outstanding: 0 }
         : calculations;
@@ -425,18 +399,13 @@ export default function AddPurchaseOrder({ onClose }) {
         ? Number(finalCalculations.grandTotal || 0)
         : Number(paidAmount || 0);
 
-      const selectedType = overrideType || saleType;
-
       const saved = await savePurchaseToAPI(
         finalCalculations,
         finalPaidAmount,
         selectedType
       );
 
-      if (!saved) {
-        setSaving(false);
-        return;
-      }
+      if (!saved) return;
 
       if (!incoming) {
         invoiceCounter++;
@@ -455,7 +424,7 @@ export default function AddPurchaseOrder({ onClose }) {
         paidAmount: finalPaidAmount,
         calculations: finalCalculations,
         date,
-        saleType: selectedType,
+        purchaseType: selectedType,
         referenceNo,
         depot,
         backendResponse: saved
@@ -473,23 +442,21 @@ export default function AddPurchaseOrder({ onClose }) {
           state: saleDataForPreview
         });
       }
-
-      return;
     } finally {
       setSaving(false);
     }
   };
 
   const handlePayNow = async () => {
-    await goToInvoicePreview("Final", true);
+    await goToInvoicePreview("CASH", true);
   };
 
   const handleSaveAndCreateInvoice = async () => {
-    await goToInvoicePreview();
+    await goToInvoicePreview(purchaseType);
   };
 
   const handleCreditPurchase = async () => {
-    await goToInvoicePreview("Credit");
+    await goToInvoicePreview("CREDIT");
   };
 
   return (
@@ -566,11 +533,10 @@ export default function AddPurchaseOrder({ onClose }) {
             </div>
 
             <div className="erp-field">
-              <label>Status *</label>
-              <select value={saleType} onChange={(e) => setSaleType(e.target.value)}>
-                <option>Final</option>
-                <option>Quotation</option>
-                <option>Credit</option>
+              <label>Purchase Type *</label>
+              <select value={purchaseType} onChange={(e) => setPurchaseType(e.target.value)}>
+                <option value="CASH">Cash</option>
+                <option value="CREDIT">Credit</option>
               </select>
             </div>
 
@@ -587,7 +553,7 @@ export default function AddPurchaseOrder({ onClose }) {
             </div>
 
             <div className="erp-field">
-              <label>AC CODE.</label>
+              <label>Reference No.</label>
               <input
                 value={referenceNo}
                 onChange={(e) => setReferenceNo(e.target.value)}
