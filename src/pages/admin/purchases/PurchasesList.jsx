@@ -1,4 +1,3 @@
-// src/pages/admin/purchases/PurchasesList.jsx
 import "./Purchases.css";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
@@ -21,7 +20,8 @@ const MOCK_PURCHASES = [
     outstanding_amount: 100000,
     date: "2026-01-10",
     status: "PARTIAL",
-    product: "HFO"
+    product: "HFO",
+    supplier: 1
   }
 ];
 
@@ -54,6 +54,7 @@ export default function PurchasesList() {
   const [payAmount, setPayAmount] = useState("");
   const [payDate, setPayDate] = useState("");
   const [payNote, setPayNote] = useState("");
+  const [payMethod, setPayMethod] = useState("CASH");
   const [payLoading, setPayLoading] = useState(false);
 
   useEffect(() => {
@@ -91,12 +92,17 @@ export default function PurchasesList() {
         p.supplier?.name ||
         p.supplier_display ||
         "",
+      supplierId:
+        p.supplier?.id ||
+        p.supplier_id ||
+        p.supplier ||
+        null,
       amount: Number(p.total_amount || p.calculations?.grandTotal || 0),
       paid: Number(p.paid_amount || 0),
       outstanding: Math.max(Number(p.outstanding_amount || 0), 0),
       year: p.date?.slice(0, 4) || "",
       date: p.date || p.po_date || "",
-      product: p.product || p.items?.[0]?.description || p.items?.[0]?.particulars || "",
+      product: p.product || p.items?.[0]?.description || p.items?.[0]?.particulars || "-",
       status: String(p.status || "UNPAID").toUpperCase(),
       purchase_type: String(p.purchase_type || "").toUpperCase(),
       raw: p
@@ -199,6 +205,7 @@ export default function PurchasesList() {
     setPayAmount("");
     setPayDate(new Date().toISOString().slice(0, 10));
     setPayNote("");
+    setPayMethod("CASH");
     setShowPayModal(true);
   };
 
@@ -223,38 +230,36 @@ export default function PurchasesList() {
 
     try {
       const payload = {
-        date: payDate || new Date().toISOString().slice(0, 10),
+        purchase: selectedPurchase.id,
+        supplier:
+          selectedPurchase.supplierId ||
+          selectedPurchase.raw?.supplier?.id ||
+          selectedPurchase.raw?.supplier ||
+          selectedPurchase.raw?.supplier_id,
         amount,
-        note: payNote || "Payment via UI"
+        payment_method: payMethod,
+        reference_number: payNote || "",
+        notes: payNote || "Payment via UI",
+        date: payDate || new Date().toISOString().slice(0, 10)
       };
 
-      const res = await API.post(`purchases/${selectedPurchase.id}/payments/`, payload);
-      const data = res?.data ?? {};
+      await API.post("purchases/purchase-payments/", payload);
 
-      setPurchases((prev) =>
-        prev.map((p) =>
-          p.id === selectedPurchase.id
-            ? {
-                ...p,
-                paid_amount: Number(data.paid_amount ?? p.paid_amount ?? 0),
-                outstanding_amount: Math.max(Number(data.outstanding_amount ?? p.outstanding_amount ?? 0), 0),
-                status: String(data.status ?? p.status ?? "UNPAID").toUpperCase()
-              }
-            : p
-        )
-      );
+      await loadPurchases();
 
       setShowPayModal(false);
       setSelectedPurchase(null);
       setPayAmount("");
       setPayDate("");
       setPayNote("");
+      setPayMethod("CASH");
     } catch (err) {
       console.error("Payment failed:", err);
 
       const msg =
         err?.response?.data?.error ||
         err?.response?.data?.detail ||
+        JSON.stringify(err?.response?.data) ||
         "Payment failed";
 
       alert(msg);
@@ -541,7 +546,20 @@ export default function PurchasesList() {
               </label>
 
               <label>
-                Note
+                Payment Method
+                <select
+                  value={payMethod}
+                  onChange={(e) => setPayMethod(e.target.value)}
+                >
+                  <option value="CASH">Cash</option>
+                  <option value="BANK">Bank Transfer</option>
+                  <option value="MOBILE">Mobile Money</option>
+                  <option value="CHEQUE">Cheque</option>
+                </select>
+              </label>
+
+              <label>
+                Note / Reference
                 <input
                   value={payNote}
                   onChange={(e) => setPayNote(e.target.value)}
