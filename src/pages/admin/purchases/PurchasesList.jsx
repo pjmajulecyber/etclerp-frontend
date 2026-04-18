@@ -211,58 +211,73 @@ export default function PurchasesList() {
 
   const handlePaySubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!selectedPurchase) return;
-
+  
     const amount = Number(payAmount || 0);
-
+  
     if (!amount || amount <= 0) {
       alert("Enter a valid payment amount");
       return;
     }
-
+  
     if (amount > Number(selectedPurchase.outstanding || 0)) {
       alert("Amount exceeds outstanding balance");
       return;
     }
-
+  
     setPayLoading(true);
-
+  
+    const payload = {
+      purchase: selectedPurchase.id,
+      supplier:
+        selectedPurchase.supplierId ||
+        selectedPurchase.raw?.supplier?.id ||
+        selectedPurchase.raw?.supplier ||
+        selectedPurchase.raw?.supplier_id,
+      amount,
+      payment_method: payMethod,
+      reference_number: payNote || "",
+      notes: payNote || "Payment via UI",
+      date: payDate || new Date().toISOString().slice(0, 10)
+    };
+  
     try {
-      const payload = {
-        purchase: selectedPurchase.id,
-        supplier:
-          selectedPurchase.supplierId ||
-          selectedPurchase.raw?.supplier?.id ||
-          selectedPurchase.raw?.supplier ||
-          selectedPurchase.raw?.supplier_id,
-        amount,
-        payment_method: payMethod,
-        reference_number: payNote || "",
-        notes: payNote || "Payment via UI",
-        date: payDate || new Date().toISOString().slice(0, 10)
-      };
-
-      await API.post("purchases/purchase-payments/", payload);
-
+      // try direct route first
+      await API.post("purchase-payments/", payload);
       await loadPurchases();
-
+  
       setShowPayModal(false);
       setSelectedPurchase(null);
       setPayAmount("");
       setPayDate("");
       setPayNote("");
       setPayMethod("CASH");
-    } catch (err) {
-      console.error("Payment failed:", err);
-
-      const msg =
-        err?.response?.data?.error ||
-        err?.response?.data?.detail ||
-        JSON.stringify(err?.response?.data) ||
-        "Payment failed";
-
-      alert(msg);
+    } catch (err1) {
+      console.warn("purchase-payments/ failed:", err1?.response?.status, err1?.response?.data);
+  
+      try {
+        // fallback to nested route if backend mounted it under purchases
+        await API.post("purchases/purchase-payments/", payload);
+        await loadPurchases();
+  
+        setShowPayModal(false);
+        setSelectedPurchase(null);
+        setPayAmount("");
+        setPayDate("");
+        setPayNote("");
+        setPayMethod("CASH");
+      } catch (err2) {
+        console.error("Payment failed:", err2);
+  
+        const msg =
+          err2?.response?.data?.error ||
+          err2?.response?.data?.detail ||
+          JSON.stringify(err2?.response?.data) ||
+          "Payment failed";
+  
+        alert(msg);
+      }
     } finally {
       setPayLoading(false);
     }
