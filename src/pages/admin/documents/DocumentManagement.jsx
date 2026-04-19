@@ -1,18 +1,8 @@
 
-
 // pages/admin/documents/DocumentManagement.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import API from "../../../services/api";
 import "./DocumentManagement.css";
-
-/**
- * Document Management System
- * - Upload documents with metadata (category, name, code, valid/expiry dates)
- * - Preview (view), Download, Edit
- * - Table with Date, Code, Doc Name, Type, Status (Valid / Expired)
- * - Filters, search, pagination, CSV export
- *
- * NOTE: files are kept in memory (File objects). In production persist to server.
- */
 
 const DEFAULT_CATEGORIES = [
   "Invoice",
@@ -38,27 +28,17 @@ function isExpired(expiryDate) {
   return exp < today;
 }
 
-export default function DocumentManagement() {
-  const [docs, setDocs] = useState(() => {
-    // sample seed
-    const sample = [
-      {
-        id: 1,
-        date: new Date().toISOString().slice(0, 10),
-        code: genCode(),
-        name: "Sample Invoice #1001",
-        category: "Invoice",
-        validDate: "",
-        expiryDate: "",
-        fileName: null,
-        fileObj: null,
-        fileUrl: null,
-      },
-    ];
-    return sample;
-  });
+function unwrapList(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.documents)) return data.documents;
+  return [];
+}
 
-  // upload / edit modal state
+export default function DocumentManagement() {
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formCategory, setFormCategory] = useState(DEFAULT_CATEGORIES[0]);
@@ -68,33 +48,66 @@ export default function DocumentManagement() {
   const [formExpiryDate, setFormExpiryDate] = useState("");
   const [formFile, setFormFile] = useState(null);
 
-  // filters / search / pagination
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all"); // all, valid, expired
+  const [filterStatus, setFilterStatus] = useState("all");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(1);
 
   const fileInputRef = useRef(null);
 
-  // cleanup object URLs on unmount
   useEffect(() => {
-    return () => {
-      docs.forEach((d) => {
-        if (d.fileUrl) URL.revokeObjectURL(d.fileUrl);
-      });
-    };
-  }, [docs]);
+    loadDocuments();
+  }, []);
 
-  // Derived: filtered docs
+  const normalizeDoc = (d) => {
+    return {
+      id: d?.id ?? d?.pk ?? Date.now(),
+      date:
+        d?.date ||
+        d?.created_at?.slice?.(0, 10) ||
+        new Date().toISOString().slice(0, 10),
+      code: d?.code || d?.document_code || "",
+      name: d?.name || d?.document_name || d?.title || "",
+      category: d?.category || d?.document_type || "Other",
+      validDate: d?.valid_date || d?.validDate || "",
+      expiryDate: d?.expiry_date || d?.expiryDate || "",
+      fileName:
+        d?.file_name ||
+        d?.filename ||
+        d?.file?.split?.("/").pop?.() ||
+        null,
+      fileObj: null,
+      fileUrl: d?.file_url || d?.file || null,
+      raw: d,
+    };
+  };
+
+  const loadDocuments = async () => {
+    setLoading(true);
+    try {
+      const res = await API.get("documents/");
+      const list = unwrapList(res?.data).map(normalizeDoc);
+      setDocs(list);
+    } catch (err) {
+      console.error("Documents API failed:", err);
+      setDocs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filtered = useMemo(() => {
     const q = (search || "").trim().toLowerCase();
     return docs.filter((d) => {
       if (filterCategory !== "all" && d.category !== filterCategory) return false;
+
       const expired = isExpired(d.expiryDate);
       if (filterStatus === "valid" && expired) return false;
       if (filterStatus === "expired" && !expired) return false;
+
       if (!q) return true;
+
       return (
         (d.name || "").toLowerCase().includes(q) ||
         (d.code || "").toLowerCase().includes(q) ||
@@ -104,13 +117,12 @@ export default function DocumentManagement() {
   }, [docs, search, filterCategory, filterStatus]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
-  }, [totalPages]); // eslint-disable-line
+  }, [page, totalPages]);
 
   const visible = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-
-  /* ----------------- Upload / Edit handlers ----------------- */
 
   const openUploadModal = () => {
     setEditingId(null);
@@ -130,7 +142,7 @@ export default function DocumentManagement() {
     setFormCode(doc.code || genCode());
     setFormValidDate(doc.validDate || "");
     setFormExpiryDate(doc.expiryDate || "");
-    setFormFile(null); // user may choose to replace
+    setFormFile(null);
     setModalOpen(true);
   };
 
@@ -145,67 +157,54 @@ export default function DocumentManagement() {
     setFormFile(f || null);
   };
 
-  const handleUploadSubmit = (e) => {
+  const buildFormData = () => {
+    const fd = new FormData();
+    fd.append("category", formCategory || "Other");
+    fd.append("name", formName || "");
+    fd.append("code", formCode || "");
+    if (formValidDate) fd.append("valid_date", formValidDate);
+    if (formExpiryDate) fd.append("expiry_date", formExpiryDate);
+    if (formFile) fd.append("file", formFile);
+    return fd;
+  };
+
+  const handleUploadSubmit = async (e) => {
     e.preventDefault();
 
-    // validations
     if (!formName) {
       alert("Please enter document name");
       return;
     }
+
     if (!formCode) {
       alert("Please provide a code");
       return;
     }
 
-    // if editing, update metadata (and file if new)
-    if (editingId) {
-      setDocs((prev) =>
-        prev.map((d) => {
-          if (d.id !== editingId) return d;
-          // revoke old URL if replacing file
-          if (formFile && d.fileUrl) {
-            URL.revokeObjectURL(d.fileUrl);
-          }
-          const fileUrl = formFile ? URL.createObjectURL(formFile) : d.fileUrl || null;
-          return {
-            ...d,
-            name: formName,
-            code: formCode,
-            category: formCategory,
-            validDate: formValidDate,
-            expiryDate: formExpiryDate,
-            fileObj: formFile || d.fileObj,
-            fileName: formFile ? formFile.name : d.fileName,
-            fileUrl,
-            date: d.date || new Date().toISOString().slice(0, 10),
-          };
-        })
-      );
+    try {
+      if (editingId) {
+        const fd = buildFormData();
+        await API.patch(`documents/${editingId}/`, fd, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+      } else {
+        const fd = buildFormData();
+        await API.post("documents/", fd, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
+      }
+
+      await loadDocuments();
       closeModal();
-      return;
+    } catch (err) {
+      console.error("Document save failed:", err);
+      alert(
+        err?.response?.data?.detail ||
+        JSON.stringify(err?.response?.data) ||
+        "Failed to save document"
+      );
     }
-
-    // new doc
-    const id = Date.now();
-    const fileUrl = formFile ? URL.createObjectURL(formFile) : null;
-    const newDoc = {
-      id,
-      date: new Date().toISOString().slice(0, 10),
-      code: formCode || genCode(),
-      name: formName,
-      category: formCategory,
-      validDate: formValidDate,
-      expiryDate: formExpiryDate,
-      fileObj: formFile || null,
-      fileName: formFile ? formFile.name : null,
-      fileUrl,
-    };
-    setDocs((prev) => [newDoc, ...prev]);
-    closeModal();
   };
-
-  /* ----------------- View / Download ----------------- */
 
   const handleView = (doc) => {
     if (!doc.fileUrl) {
@@ -215,41 +214,49 @@ export default function DocumentManagement() {
     window.open(doc.fileUrl, "_blank");
   };
 
-  const handleDownload = (doc) => {
-    if (!doc.fileObj && !doc.fileUrl) {
+  const handleDownload = async (doc) => {
+    if (!doc.fileUrl) {
       alert("No file to download.");
       return;
     }
-    // prefer fileObj to preserve name
-    if (doc.fileObj) {
-      const url = URL.createObjectURL(doc.fileObj);
+
+    try {
+      const res = await API.get(`documents/${doc.id}/`, {
+        responseType: "blob"
+      });
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement("a");
       a.href = url;
       a.download = doc.fileName || doc.name || "document";
       a.click();
-      URL.revokeObjectURL(url);
-      return;
-    }
-    if (doc.fileUrl) {
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      // fallback to direct file url
       const a = document.createElement("a");
       a.href = doc.fileUrl;
+      a.target = "_blank";
       a.download = doc.fileName || doc.name || "document";
       a.click();
     }
   };
 
-  /* ----------------- Delete (optional) ----------------- */
-  const handleDelete = (doc) => {
+  const handleDelete = async (doc) => {
     if (!window.confirm("Delete document?")) return;
-    setDocs((prev) => {
-      prev.forEach((d) => {
-        if (d.id === doc.id && d.fileUrl) URL.revokeObjectURL(d.fileUrl);
-      });
-      return prev.filter((d) => d.id !== doc.id);
-    });
+
+    try {
+      await API.delete(`documents/${doc.id}/`);
+      await loadDocuments();
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert(
+        err?.response?.data?.detail ||
+        JSON.stringify(err?.response?.data) ||
+        "Failed to delete document"
+      );
+    }
   };
 
-  /* ----------------- Export CSV of visible filtered set ----------------- */
   const exportCSV = () => {
     const headers = ["Date", "Code", "Name", "Category", "Valid Date", "Expiry Date", "Status"];
     const rows = filtered.map((d) => [
@@ -271,10 +278,6 @@ export default function DocumentManagement() {
     URL.revokeObjectURL(url);
   };
 
-  /* ----------------- Utility: quick prefill by code (auto-fill product) -----------------
-     The user wanted: "when I input the code ex 23000 the product appears automatically"
-     We'll implement a tiny lookup: if code matches existing doc's code, prefill name & category.
-  ------------------------------------------------------------------------------- */
   useEffect(() => {
     if (!formCode) return;
     const match = docs.find((d) => d.code === formCode);
@@ -282,8 +285,7 @@ export default function DocumentManagement() {
       setFormName((prev) => (prev ? prev : match.name || ""));
       setFormCategory((prev) => (prev ? prev : match.category || DEFAULT_CATEGORIES[0]));
     }
-    // eslint-disable-next-line
-  }, [formCode]);
+  }, [formCode, docs, editingId]);
 
   return (
     <div className="doc-page">
@@ -308,7 +310,9 @@ export default function DocumentManagement() {
               onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
             >
               <option value="all">All categories</option>
-              {DEFAULT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              {DEFAULT_CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
 
             <select
@@ -325,7 +329,9 @@ export default function DocumentManagement() {
           </div>
 
           <div className="doc-upload-btns">
-            <button className="btn btn-primary" onClick={openUploadModal}>+ Upload document</button>
+            <button className="btn btn-primary" onClick={openUploadModal}>
+              + Upload document
+            </button>
           </div>
         </div>
       </div>
@@ -364,13 +370,19 @@ export default function DocumentManagement() {
             </thead>
 
             <tbody>
-              {visible.length === 0 && (
+              {loading && (
+                <tr>
+                  <td colSpan={8} className="empty">Loading documents...</td>
+                </tr>
+              )}
+
+              {!loading && visible.length === 0 && (
                 <tr>
                   <td colSpan={8} className="empty">No documents found</td>
                 </tr>
               )}
 
-              {visible.map((d) => {
+              {!loading && visible.map((d) => {
                 const expired = isExpired(d.expiryDate);
                 return (
                   <tr key={d.id}>
@@ -400,7 +412,6 @@ export default function DocumentManagement() {
           </table>
         </div>
 
-        {/* pagination */}
         <div className="doc-pagination">
           <div className="doc-page-info">
             Showing {(filtered.length === 0) ? 0 : (page - 1) * rowsPerPage + 1}
@@ -411,49 +422,80 @@ export default function DocumentManagement() {
           </div>
 
           <div className="doc-page-controls">
-            <button className="btn ghost" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</button>
+            <button
+              className="btn ghost"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </button>
             <button className="btn ghost active">{page}</button>
-            <button className="btn ghost" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</button>
+            <button
+              className="btn ghost"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Upload / Edit Modal */}
       {modalOpen && (
         <div className="modal-backdrop" onClick={closeModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>{editingId ? "Edit Document" : "Upload Document"}</h3>
 
             <form className="modal-form" onSubmit={handleUploadSubmit}>
-              <label className="modal-label">Category
+              <label className="modal-label">
+                Category
                 <select value={formCategory} onChange={(e) => setFormCategory(e.target.value)}>
-                  {DEFAULT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {DEFAULT_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
                 </select>
               </label>
 
-              <label className="modal-label">Document Name
+              <label className="modal-label">
+                Document Name
                 <input value={formName} onChange={(e) => setFormName(e.target.value)} />
               </label>
 
-              <label className="modal-label">Code
+              <label className="modal-label">
+                Code
                 <input value={formCode} onChange={(e) => setFormCode(e.target.value)} />
               </label>
 
-              <label className="modal-label">Valid Date
-                <input type="date" value={formValidDate} onChange={(e) => setFormValidDate(e.target.value)} />
+              <label className="modal-label">
+                Valid Date
+                <input
+                  type="date"
+                  value={formValidDate}
+                  onChange={(e) => setFormValidDate(e.target.value)}
+                />
               </label>
 
-              <label className="modal-label">Expiry Date
-                <input type="date" value={formExpiryDate} onChange={(e) => setFormExpiryDate(e.target.value)} />
+              <label className="modal-label">
+                Expiry Date
+                <input
+                  type="date"
+                  value={formExpiryDate}
+                  onChange={(e) => setFormExpiryDate(e.target.value)}
+                />
               </label>
 
-              <label className="modal-label">Select File
+              <label className="modal-label">
+                Select File
                 <input ref={fileInputRef} type="file" onChange={handleFileInput} />
               </label>
 
               <div className="modal-actions">
-                <button type="button" className="btn btn-ghost" onClick={closeModal}>Cancel</button>
-                <button type="submit" className="btn primary">{editingId ? "Save Changes" : "Upload Document"}</button>
+                <button type="button" className="btn btn-ghost" onClick={closeModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn primary">
+                  {editingId ? "Save Changes" : "Upload Document"}
+                </button>
               </div>
             </form>
           </div>
@@ -462,6 +504,3 @@ export default function DocumentManagement() {
     </div>
   );
 }
-
-
-
