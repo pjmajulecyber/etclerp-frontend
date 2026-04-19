@@ -1,5 +1,3 @@
-
-
 // pages/admin/documents/DocumentManagement.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API from "../../../services/api";
@@ -35,13 +33,16 @@ export default function DocumentManagement() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  const [formCategoryCode, setFormCategoryCode] = useState("");
-  const [formCategoryName, setFormCategoryName] = useState("");
+  const [formCategory, setFormCategory] = useState("");
   const [formName, setFormName] = useState("");
   const [formCode, setFormCode] = useState("");
   const [formValidDate, setFormValidDate] = useState("");
   const [formExpiryDate, setFormExpiryDate] = useState("");
   const [formFile, setFormFile] = useState(null);
+
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [addingCategory, setAddingCategory] = useState(false);
 
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -61,22 +62,22 @@ export default function DocumentManagement() {
 
   const normalizeCategory = (item) => {
     return {
-      id: item?.id ?? null,
-      code: String(item?.code ?? item?.name ?? "").trim(),
-      name: item?.name ?? item?.label ?? item?.title ?? String(item?.code ?? "").trim(),
+      id: item?.id ?? item?.pk ?? item?.value ?? null,
+      name: item?.name ?? item?.label ?? item?.title ?? "",
     };
   };
 
   const loadCategories = async () => {
     try {
       const res = await API.get("settings/document-categories/");
-      const list = unwrapList(res?.data).map(normalizeCategory).filter((x) => x.code);
+      const list = unwrapList(res?.data)
+        .map(normalizeCategory)
+        .filter((x) => x.id !== null && x.id !== undefined && x.name);
 
       setCategoryOptions(list);
 
-      if (!formCategoryCode && list.length > 0) {
-        setFormCategoryCode(list[0].code);
-        setFormCategoryName(list[0].name);
+      if (!formCategory && list.length > 0) {
+        setFormCategory(String(list[0].id));
       }
     } catch (err) {
       console.error("Document categories API failed:", err);
@@ -87,13 +88,16 @@ export default function DocumentManagement() {
   const normalizeDoc = (d) => {
     return {
       id: d?.id ?? d?.pk ?? Date.now(),
-      date: d?.date || d?.created_at?.slice?.(0, 10) || new Date().toISOString().slice(0, 10),
-      code: d?.code || d?.document_code || `DOC-${String(d?.id ?? Date.now()).padStart(6, "0")}`,
+      date:
+        d?.date ||
+        d?.created_at?.slice?.(0, 10) ||
+        new Date().toISOString().slice(0, 10),
+      code:
+        d?.code ||
+        d?.document_code ||
+        `DOC-${String(d?.id ?? Date.now()).padStart(6, "0")}`,
       name: d?.name || d?.document_name || d?.title || "",
-      categoryCode:
-        d?.category_code ||
-        d?.category?.code ||
-        "",
+      categoryId: d?.category?.id ?? d?.category_id ?? d?.category ?? "",
       category:
         d?.category_name ||
         d?.category?.name ||
@@ -101,7 +105,11 @@ export default function DocumentManagement() {
         "Other",
       validDate: d?.valid_date || "",
       expiryDate: d?.expiry_date || "",
-      fileName: d?.file_name || d?.filename || d?.file?.split?.("/").pop?.() || null,
+      fileName:
+        d?.file_name ||
+        d?.filename ||
+        d?.file?.split?.("/").pop?.() ||
+        null,
       fileObj: null,
       fileUrl: d?.file_url || d?.file || null,
       raw: d,
@@ -126,7 +134,9 @@ export default function DocumentManagement() {
     const q = (search || "").trim().toLowerCase();
 
     return docs.filter((d) => {
-      if (filterCategory !== "all" && d.categoryCode !== filterCategory) return false;
+      if (filterCategory !== "all" && String(d.categoryId) !== String(filterCategory)) {
+        return false;
+      }
 
       const expired = isExpired(d.expiryDate);
       if (filterStatus === "valid" && expired) return false;
@@ -137,8 +147,7 @@ export default function DocumentManagement() {
       return (
         (d.name || "").toLowerCase().includes(q) ||
         (d.code || "").toLowerCase().includes(q) ||
-        (d.category || "").toLowerCase().includes(q) ||
-        (d.categoryCode || "").toLowerCase().includes(q)
+        (d.category || "").toLowerCase().includes(q)
       );
     });
   }, [docs, search, filterCategory, filterStatus]);
@@ -151,17 +160,9 @@ export default function DocumentManagement() {
 
   const visible = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
-  const syncCategoryNameFromCode = (codeValue) => {
-    const found = categoryOptions.find(
-      (c) => String(c.code).toLowerCase() === String(codeValue || "").toLowerCase()
-    );
-    setFormCategoryName(found?.name || "");
-  };
-
   const openUploadModal = () => {
     setEditingId(null);
-    setFormCategoryCode(categoryOptions[0]?.code || "");
-    setFormCategoryName(categoryOptions[0]?.name || "");
+    setFormCategory(categoryOptions[0]?.id ? String(categoryOptions[0].id) : "");
     setFormName("");
     setFormCode(genCode());
     setFormValidDate("");
@@ -172,8 +173,7 @@ export default function DocumentManagement() {
 
   const openEditModal = (doc) => {
     setEditingId(doc.id);
-    setFormCategoryCode(doc.categoryCode || "");
-    setFormCategoryName(doc.category || "");
+    setFormCategory(String(doc.categoryId || ""));
     setFormName(doc.name || "");
     setFormCode(doc.code || genCode());
     setFormValidDate(doc.validDate || "");
@@ -196,7 +196,7 @@ export default function DocumentManagement() {
   const buildFormData = () => {
     const fd = new FormData();
     fd.append("name", formName || "");
-    fd.append("category_code", formCategoryCode || "");
+    fd.append("category", String(Number(formCategory || 0)));
     if (formValidDate) fd.append("valid_date", formValidDate);
     if (formExpiryDate) fd.append("expiry_date", formExpiryDate);
     if (formFile) fd.append("file", formFile);
@@ -206,38 +206,72 @@ export default function DocumentManagement() {
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formName) {
+    if (!formName.trim()) {
       alert("Please enter document name");
       return;
     }
 
-    if (!formCategoryCode) {
-      alert("Please enter category code");
+    if (!formCategory) {
+      alert("Please select category");
       return;
     }
 
     try {
       const fd = buildFormData();
 
+      for (const pair of fd.entries()) {
+        console.log("DOCUMENT PAYLOAD:", pair[0], pair[1]);
+      }
+
       if (editingId) {
-        await API.patch(`documents/${editingId}/`, fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await API.patch(`documents/${editingId}/`, fd);
       } else {
-        await API.post("documents/", fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await API.post("documents/", fd);
       }
 
       await loadDocuments();
       closeModal();
     } catch (err) {
       console.error("Document save failed:", err);
+      console.error("Document save error data:", err?.response?.data);
+
       alert(
         err?.response?.data?.detail ||
         JSON.stringify(err?.response?.data) ||
         "Failed to save document"
       );
+    }
+  };
+
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+
+    if (!newCategoryName.trim()) {
+      alert("Please enter category name");
+      return;
+    }
+
+    setAddingCategory(true);
+
+    try {
+      await API.post("settings/document-categories/", {
+        name: newCategoryName.trim(),
+      });
+
+      await loadCategories();
+      setShowCategoryModal(false);
+      setNewCategoryName("");
+    } catch (err) {
+      console.error("Category create failed:", err);
+      console.error("Category create error data:", err?.response?.data);
+
+      alert(
+        err?.response?.data?.detail ||
+        JSON.stringify(err?.response?.data) ||
+        "Failed to add category"
+      );
+    } finally {
+      setAddingCategory(false);
     }
   };
 
@@ -270,6 +304,8 @@ export default function DocumentManagement() {
       await loadDocuments();
     } catch (err) {
       console.error("Delete failed:", err);
+      console.error("Delete error data:", err?.response?.data);
+
       alert(
         err?.response?.data?.detail ||
         JSON.stringify(err?.response?.data) ||
@@ -279,17 +315,26 @@ export default function DocumentManagement() {
   };
 
   const exportCSV = () => {
-    const headers = ["Date", "Code", "Name", "Category Code", "Category", "Valid Date", "Expiry Date", "Status"];
+    const headers = [
+      "Date",
+      "Code",
+      "Name",
+      "Category",
+      "Valid Date",
+      "Expiry Date",
+      "Status",
+    ];
+
     const rows = filtered.map((d) => [
       d.date || "",
       d.code || "",
       `"${(d.name || "").replace(/"/g, '""')}"`,
-      d.categoryCode || "",
       d.category || "",
       d.validDate || "",
       d.expiryDate || "",
       isExpired(d.expiryDate) ? "Expired" : "Valid",
     ]);
+
     const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -299,14 +344,6 @@ export default function DocumentManagement() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
-  useEffect(() => {
-    if (!formCategoryCode) {
-      setFormCategoryName("");
-      return;
-    }
-    syncCategoryNameFromCode(formCategoryCode);
-  }, [formCategoryCode, categoryOptions]);
 
   return (
     <div className="doc-page">
@@ -338,8 +375,8 @@ export default function DocumentManagement() {
             >
               <option value="all">All categories</option>
               {categoryOptions.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.code} - {c.name}
+                <option key={c.id} value={String(c.id)}>
+                  {c.name}
                 </option>
               ))}
             </select>
@@ -362,9 +399,13 @@ export default function DocumentManagement() {
             </button>
           </div>
 
-          <div className="doc-upload-btns">
+          <div className="doc-upload-btns" style={{ display: "flex", gap: "10px" }}>
+            <button className="btn btn-ghost" onClick={() => setShowCategoryModal(true)}>
+              + Add Category
+            </button>
+
             <button className="btn btn-primary" onClick={openUploadModal}>
-              + Upload document
+              + Upload Document
             </button>
           </div>
         </div>
@@ -398,7 +439,6 @@ export default function DocumentManagement() {
                 <th>Date</th>
                 <th>Code</th>
                 <th>Doc Name</th>
-                <th>Category Code</th>
                 <th>Category</th>
                 <th>Valid Date</th>
                 <th>Expiry Date</th>
@@ -410,13 +450,13 @@ export default function DocumentManagement() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={9} className="empty">Loading documents...</td>
+                  <td colSpan={8} className="empty">Loading documents...</td>
                 </tr>
               )}
 
               {!loading && visible.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="empty">No documents found</td>
+                  <td colSpan={8} className="empty">No documents found</td>
                 </tr>
               )}
 
@@ -428,7 +468,6 @@ export default function DocumentManagement() {
                       <td>{d.date || "-"}</td>
                       <td className="mono">{d.code}</td>
                       <td>{d.name}</td>
-                      <td className="mono">{d.categoryCode || "-"}</td>
                       <td>{d.category}</td>
                       <td>{d.validDate || "-"}</td>
                       <td>{d.expiryDate || "-"}</td>
@@ -488,25 +527,18 @@ export default function DocumentManagement() {
 
             <form className="modal-form" onSubmit={handleUploadSubmit}>
               <label className="modal-label">
-                Category Code
-                <input
-                  list="document-category-codes"
-                  value={formCategoryCode}
-                  onChange={(e) => setFormCategoryCode(e.target.value)}
-                  placeholder="Enter category code"
-                />
-                <datalist id="document-category-codes">
+                Category
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                >
+                  <option value="">Select category</option>
                   {categoryOptions.map((c) => (
-                    <option key={c.id || c.code} value={c.code}>
-                      {c.code} - {c.name}
+                    <option key={c.id} value={String(c.id)}>
+                      {c.name}
                     </option>
                   ))}
-                </datalist>
-              </label>
-
-              <label className="modal-label">
-                Category Name
-                <input value={formCategoryName} readOnly />
+                </select>
               </label>
 
               <label className="modal-label">
@@ -554,14 +586,38 @@ export default function DocumentManagement() {
           </div>
         </div>
       )}
+
+      {showCategoryModal && (
+        <div className="modal-backdrop" onClick={() => setShowCategoryModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Add Document Category</h3>
+
+            <form className="modal-form" onSubmit={handleAddCategory}>
+              <label className="modal-label">
+                Category Name
+                <input
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Enter category name"
+                />
+              </label>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => setShowCategoryModal(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn primary" disabled={addingCategory}>
+                  {addingCategory ? "Saving..." : "Save Category"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
-
-
-
-
-
-
