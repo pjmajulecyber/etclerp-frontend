@@ -1,19 +1,9 @@
 
+
 // pages/admin/documents/DocumentManagement.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API from "../../../services/api";
 import "./DocumentManagement.css";
-
-const DEFAULT_CATEGORIES = [
-  "Invoice",
-  "TRA",
-  "TPA",
-  "License",
-  "Corporate Certificate",
-  "Car Registration",
-  "Title Deed",
-  "Other",
-];
 
 function genCode() {
   const t = Date.now().toString();
@@ -32,6 +22,7 @@ function unwrapList(data) {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.results)) return data.results;
   if (Array.isArray(data?.documents)) return data.documents;
+  if (Array.isArray(data?.categories)) return data.categories;
   return [];
 }
 
@@ -39,9 +30,13 @@ export default function DocumentManagement() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [categoryOptions, setCategoryOptions] = useState([]);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formCategory, setFormCategory] = useState(DEFAULT_CATEGORIES[0]);
+
+  const [formCategoryCode, setFormCategoryCode] = useState("");
+  const [formCategoryName, setFormCategoryName] = useState("");
   const [formName, setFormName] = useState("");
   const [formCode, setFormCode] = useState("");
   const [formValidDate, setFormValidDate] = useState("");
@@ -57,26 +52,56 @@ export default function DocumentManagement() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    loadDocuments();
+    loadAll();
   }, []);
+
+  const loadAll = async () => {
+    await Promise.all([loadCategories(), loadDocuments()]);
+  };
+
+  const normalizeCategory = (item) => {
+    return {
+      id: item?.id ?? null,
+      code: String(item?.code ?? item?.name ?? "").trim(),
+      name: item?.name ?? item?.label ?? item?.title ?? String(item?.code ?? "").trim(),
+    };
+  };
+
+  const loadCategories = async () => {
+    try {
+      const res = await API.get("settings/document-categories/");
+      const list = unwrapList(res?.data).map(normalizeCategory).filter((x) => x.code);
+
+      setCategoryOptions(list);
+
+      if (!formCategoryCode && list.length > 0) {
+        setFormCategoryCode(list[0].code);
+        setFormCategoryName(list[0].name);
+      }
+    } catch (err) {
+      console.error("Document categories API failed:", err);
+      setCategoryOptions([]);
+    }
+  };
 
   const normalizeDoc = (d) => {
     return {
       id: d?.id ?? d?.pk ?? Date.now(),
-      date:
-        d?.date ||
-        d?.created_at?.slice?.(0, 10) ||
-        new Date().toISOString().slice(0, 10),
-      code: d?.code || d?.document_code || "",
+      date: d?.date || d?.created_at?.slice?.(0, 10) || new Date().toISOString().slice(0, 10),
+      code: d?.code || d?.document_code || `DOC-${String(d?.id ?? Date.now()).padStart(6, "0")}`,
       name: d?.name || d?.document_name || d?.title || "",
-      category: d?.category || d?.document_type || "Other",
-      validDate: d?.valid_date || d?.validDate || "",
-      expiryDate: d?.expiry_date || d?.expiryDate || "",
-      fileName:
-        d?.file_name ||
-        d?.filename ||
-        d?.file?.split?.("/").pop?.() ||
-        null,
+      categoryCode:
+        d?.category_code ||
+        d?.category?.code ||
+        "",
+      category:
+        d?.category_name ||
+        d?.category?.name ||
+        d?.document_type ||
+        "Other",
+      validDate: d?.valid_date || "",
+      expiryDate: d?.expiry_date || "",
+      fileName: d?.file_name || d?.filename || d?.file?.split?.("/").pop?.() || null,
       fileObj: null,
       fileUrl: d?.file_url || d?.file || null,
       raw: d,
@@ -99,8 +124,9 @@ export default function DocumentManagement() {
 
   const filtered = useMemo(() => {
     const q = (search || "").trim().toLowerCase();
+
     return docs.filter((d) => {
-      if (filterCategory !== "all" && d.category !== filterCategory) return false;
+      if (filterCategory !== "all" && d.categoryCode !== filterCategory) return false;
 
       const expired = isExpired(d.expiryDate);
       if (filterStatus === "valid" && expired) return false;
@@ -111,7 +137,8 @@ export default function DocumentManagement() {
       return (
         (d.name || "").toLowerCase().includes(q) ||
         (d.code || "").toLowerCase().includes(q) ||
-        (d.category || "").toLowerCase().includes(q)
+        (d.category || "").toLowerCase().includes(q) ||
+        (d.categoryCode || "").toLowerCase().includes(q)
       );
     });
   }, [docs, search, filterCategory, filterStatus]);
@@ -124,9 +151,17 @@ export default function DocumentManagement() {
 
   const visible = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
+  const syncCategoryNameFromCode = (codeValue) => {
+    const found = categoryOptions.find(
+      (c) => String(c.code).toLowerCase() === String(codeValue || "").toLowerCase()
+    );
+    setFormCategoryName(found?.name || "");
+  };
+
   const openUploadModal = () => {
     setEditingId(null);
-    setFormCategory(DEFAULT_CATEGORIES[0]);
+    setFormCategoryCode(categoryOptions[0]?.code || "");
+    setFormCategoryName(categoryOptions[0]?.name || "");
     setFormName("");
     setFormCode(genCode());
     setFormValidDate("");
@@ -137,7 +172,8 @@ export default function DocumentManagement() {
 
   const openEditModal = (doc) => {
     setEditingId(doc.id);
-    setFormCategory(doc.category || DEFAULT_CATEGORIES[0]);
+    setFormCategoryCode(doc.categoryCode || "");
+    setFormCategoryName(doc.category || "");
     setFormName(doc.name || "");
     setFormCode(doc.code || genCode());
     setFormValidDate(doc.validDate || "");
@@ -159,9 +195,8 @@ export default function DocumentManagement() {
 
   const buildFormData = () => {
     const fd = new FormData();
-    fd.append("category", formCategory || "Other");
     fd.append("name", formName || "");
-    fd.append("code", formCode || "");
+    fd.append("category_code", formCategoryCode || "");
     if (formValidDate) fd.append("valid_date", formValidDate);
     if (formExpiryDate) fd.append("expiry_date", formExpiryDate);
     if (formFile) fd.append("file", formFile);
@@ -176,21 +211,21 @@ export default function DocumentManagement() {
       return;
     }
 
-    if (!formCode) {
-      alert("Please provide a code");
+    if (!formCategoryCode) {
+      alert("Please enter category code");
       return;
     }
 
     try {
+      const fd = buildFormData();
+
       if (editingId) {
-        const fd = buildFormData();
         await API.patch(`documents/${editingId}/`, fd, {
-          headers: { "Content-Type": "multipart/form-data" }
+          headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        const fd = buildFormData();
         await API.post("documents/", fd, {
-          headers: { "Content-Type": "multipart/form-data" }
+          headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
@@ -214,31 +249,17 @@ export default function DocumentManagement() {
     window.open(doc.fileUrl, "_blank");
   };
 
-  const handleDownload = async (doc) => {
+  const handleDownload = (doc) => {
     if (!doc.fileUrl) {
       alert("No file to download.");
       return;
     }
 
-    try {
-      const res = await API.get(`documents/${doc.id}/`, {
-        responseType: "blob"
-      });
-
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = doc.fileName || doc.name || "document";
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      // fallback to direct file url
-      const a = document.createElement("a");
-      a.href = doc.fileUrl;
-      a.target = "_blank";
-      a.download = doc.fileName || doc.name || "document";
-      a.click();
-    }
+    const a = document.createElement("a");
+    a.href = doc.fileUrl;
+    a.target = "_blank";
+    a.download = doc.fileName || doc.name || "document";
+    a.click();
   };
 
   const handleDelete = async (doc) => {
@@ -258,11 +279,12 @@ export default function DocumentManagement() {
   };
 
   const exportCSV = () => {
-    const headers = ["Date", "Code", "Name", "Category", "Valid Date", "Expiry Date", "Status"];
+    const headers = ["Date", "Code", "Name", "Category Code", "Category", "Valid Date", "Expiry Date", "Status"];
     const rows = filtered.map((d) => [
       d.date || "",
       d.code || "",
       `"${(d.name || "").replace(/"/g, '""')}"`,
+      d.categoryCode || "",
       d.category || "",
       d.validDate || "",
       d.expiryDate || "",
@@ -279,13 +301,12 @@ export default function DocumentManagement() {
   };
 
   useEffect(() => {
-    if (!formCode) return;
-    const match = docs.find((d) => d.code === formCode);
-    if (match && !editingId) {
-      setFormName((prev) => (prev ? prev : match.name || ""));
-      setFormCategory((prev) => (prev ? prev : match.category || DEFAULT_CATEGORIES[0]));
+    if (!formCategoryCode) {
+      setFormCategoryName("");
+      return;
     }
-  }, [formCode, docs, editingId]);
+    syncCategoryNameFromCode(formCategoryCode);
+  }, [formCategoryCode, categoryOptions]);
 
   return (
     <div className="doc-page">
@@ -301,31 +322,44 @@ export default function DocumentManagement() {
               className="doc-search"
               placeholder="Search name, code or category..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
             />
 
             <select
               className="doc-select"
               value={filterCategory}
-              onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setFilterCategory(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="all">All categories</option>
-              {DEFAULT_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {categoryOptions.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code} - {c.name}
+                </option>
               ))}
             </select>
 
             <select
               className="doc-select"
               value={filterStatus}
-              onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="all">All status</option>
               <option value="valid">Valid</option>
               <option value="expired">Expired</option>
             </select>
 
-            <button className="btn btn-ghost" onClick={exportCSV}>Export CSV</button>
+            <button className="btn btn-ghost" onClick={exportCSV}>
+              Export CSV
+            </button>
           </div>
 
           <div className="doc-upload-btns">
@@ -344,7 +378,10 @@ export default function DocumentManagement() {
             <select
               className="rows-select"
               value={rowsPerPage}
-              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => {
+                setRowsPerPage(Number(e.target.value));
+                setPage(1);
+              }}
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
@@ -361,7 +398,8 @@ export default function DocumentManagement() {
                 <th>Date</th>
                 <th>Code</th>
                 <th>Doc Name</th>
-                <th>Type</th>
+                <th>Category Code</th>
+                <th>Category</th>
                 <th>Valid Date</th>
                 <th>Expiry Date</th>
                 <th>Status</th>
@@ -372,49 +410,51 @@ export default function DocumentManagement() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={8} className="empty">Loading documents...</td>
+                  <td colSpan={9} className="empty">Loading documents...</td>
                 </tr>
               )}
 
               {!loading && visible.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="empty">No documents found</td>
+                  <td colSpan={9} className="empty">No documents found</td>
                 </tr>
               )}
 
-              {!loading && visible.map((d) => {
-                const expired = isExpired(d.expiryDate);
-                return (
-                  <tr key={d.id}>
-                    <td>{d.date || "-"}</td>
-                    <td className="mono">{d.code}</td>
-                    <td>{d.name}</td>
-                    <td>{d.category}</td>
-                    <td>{d.validDate || "-"}</td>
-                    <td>{d.expiryDate || "-"}</td>
-                    <td>
-                      <span className={`doc-badge ${expired ? "expired" : "valid"}`}>
-                        {expired ? "Expired" : "Valid"}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="doc-row-actions">
-                        <button className="btn small" onClick={() => handleView(d)}>View</button>
-                        <button className="btn small" onClick={() => handleDownload(d)}>Download</button>
-                        <button className="btn small" onClick={() => openEditModal(d)}>Edit</button>
-                        <button className="btn small ghost" onClick={() => handleDelete(d)}>Delete</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+              {!loading &&
+                visible.map((d) => {
+                  const expired = isExpired(d.expiryDate);
+                  return (
+                    <tr key={d.id}>
+                      <td>{d.date || "-"}</td>
+                      <td className="mono">{d.code}</td>
+                      <td>{d.name}</td>
+                      <td className="mono">{d.categoryCode || "-"}</td>
+                      <td>{d.category}</td>
+                      <td>{d.validDate || "-"}</td>
+                      <td>{d.expiryDate || "-"}</td>
+                      <td>
+                        <span className={`doc-badge ${expired ? "expired" : "valid"}`}>
+                          {expired ? "Expired" : "Valid"}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="doc-row-actions">
+                          <button className="btn small" onClick={() => handleView(d)}>View</button>
+                          <button className="btn small" onClick={() => handleDownload(d)}>Download</button>
+                          <button className="btn small" onClick={() => openEditModal(d)}>Edit</button>
+                          <button className="btn small ghost" onClick={() => handleDelete(d)}>Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
 
         <div className="doc-pagination">
           <div className="doc-page-info">
-            Showing {(filtered.length === 0) ? 0 : (page - 1) * rowsPerPage + 1}
+            Showing {filtered.length === 0 ? 0 : (page - 1) * rowsPerPage + 1}
             {" to "}
             {Math.min(page * rowsPerPage, filtered.length)}
             {" of "}
@@ -448,12 +488,25 @@ export default function DocumentManagement() {
 
             <form className="modal-form" onSubmit={handleUploadSubmit}>
               <label className="modal-label">
-                Category
-                <select value={formCategory} onChange={(e) => setFormCategory(e.target.value)}>
-                  {DEFAULT_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                Category Code
+                <input
+                  list="document-category-codes"
+                  value={formCategoryCode}
+                  onChange={(e) => setFormCategoryCode(e.target.value)}
+                  placeholder="Enter category code"
+                />
+                <datalist id="document-category-codes">
+                  {categoryOptions.map((c) => (
+                    <option key={c.id || c.code} value={c.code}>
+                      {c.code} - {c.name}
+                    </option>
                   ))}
-                </select>
+                </datalist>
+              </label>
+
+              <label className="modal-label">
+                Category Name
+                <input value={formCategoryName} readOnly />
               </label>
 
               <label className="modal-label">
@@ -462,7 +515,7 @@ export default function DocumentManagement() {
               </label>
 
               <label className="modal-label">
-                Code
+                Display Code
                 <input value={formCode} onChange={(e) => setFormCode(e.target.value)} />
               </label>
 
@@ -504,3 +557,11 @@ export default function DocumentManagement() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
