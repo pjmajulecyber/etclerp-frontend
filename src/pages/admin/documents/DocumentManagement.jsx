@@ -487,44 +487,55 @@ export default function DocumentManagement() {
             <h3>{editingId ? "Edit Document" : "Upload Document"}</h3>
 
             <form className="modal-form" onSubmit={handleUploadSubmit}>
-            <label className="modal-label">
-                  Category Code
-                  <input
-                    list="document-category-codes"
-                    value={formCategoryCode}
-                    onChange={(e) => {
-                      const code = e.target.value;
-                      setFormCategoryCode(code);
+              <label className="modal-label">
+                Category Code
+                <input
+                  list="document-category-codes"
+                  value={formCategoryCode}
+                  onChange={(e) => setFormCategoryCode(e.target.value)}
+                  placeholder="Enter category code"
+                />
+                <datalist id="document-category-codes">
+                  {categoryOptions.map((c) => (
+                    <option key={c.id || c.code} value={c.code}>
+                      {c.code} - {c.name}
+                    </option>
+                  ))}
+                </datalist>
+              </label>
 
-                      const found = categoryOptions.find(
-                        (c) => String(c.code || "").toLowerCase() === String(code || "").toLowerCase()
-                      );
+              <label className="modal-label">
+                Category Name
+                <input value={formCategoryName} readOnly />
+              </label>
 
-                      if (found) {
-                        setFormCategoryName(found.name || "");
-                      } else {
-                        setFormCategoryName("");
-                      }
-                    }}
-                    placeholder="Enter category code"
-                  />
-                  <datalist id="document-category-codes">
-                    {categoryOptions.map((c) => (
-                      <option key={c.id || c.code} value={c.code}>
-                        {c.code} - {c.name}
-                      </option>
-                    ))}
-                  </datalist>
-                </label>
+              <label className="modal-label">
+                Document Name
+                <input value={formName} onChange={(e) => setFormName(e.target.value)} />
+              </label>
 
-                <label className="modal-label">
-                  Category Name
-                  <input
-                    value={formCategoryName}
-                    readOnly
-                    placeholder="Will auto-fill from category code"
-                  />
-                </label>
+              <label className="modal-label">
+                Display Code
+                <input value={formCode} onChange={(e) => setFormCode(e.target.value)} />
+              </label>
+
+              <label className="modal-label">
+                Valid Date
+                <input
+                  type="date"
+                  value={formValidDate}
+                  onChange={(e) => setFormValidDate(e.target.value)}
+                />
+              </label>
+
+              <label className="modal-label">
+                Expiry Date
+                <input
+                  type="date"
+                  value={formExpiryDate}
+                  onChange={(e) => setFormExpiryDate(e.target.value)}
+                />
+              </label>
 
               <label className="modal-label">
                 Select File
