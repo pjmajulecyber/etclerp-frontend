@@ -1,5 +1,3 @@
-
-
 // pages/admin/documents/DocumentManagement.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API from "../../../services/api";
@@ -71,7 +69,7 @@ export default function DocumentManagement() {
 
   const loadCategories = async () => {
     try {
-      const res = await API.get("settings/document-categories/");
+      const res = await API.get("settings_app/documentcategory/");
       const list = unwrapList(res?.data)
         .map(normalizeCategory)
         .filter((x) => x.id !== null && x.id !== undefined && x.name);
@@ -83,6 +81,7 @@ export default function DocumentManagement() {
       }
     } catch (err) {
       console.error("Document categories API failed:", err);
+      console.error("Document categories error data:", err?.response?.data);
       setCategoryOptions([]);
     }
   };
@@ -239,8 +238,8 @@ export default function DocumentManagement() {
 
       alert(
         err?.response?.data?.detail ||
-        JSON.stringify(err?.response?.data) ||
-        "Failed to save document"
+          JSON.stringify(err?.response?.data) ||
+          "Failed to save document"
       );
     }
   };
@@ -256,7 +255,7 @@ export default function DocumentManagement() {
     setAddingCategory(true);
 
     try {
-      await API.post("settings/document-categories/", {
+      await API.post("settings_app/documentcategory/", {
         name: newCategoryName.trim(),
       });
 
@@ -269,8 +268,8 @@ export default function DocumentManagement() {
 
       alert(
         err?.response?.data?.detail ||
-        JSON.stringify(err?.response?.data) ||
-        "Failed to add category"
+          JSON.stringify(err?.response?.data) ||
+          "Failed to add category"
       );
     } finally {
       setAddingCategory(false);
@@ -310,8 +309,8 @@ export default function DocumentManagement() {
 
       alert(
         err?.response?.data?.detail ||
-        JSON.stringify(err?.response?.data) ||
-        "Failed to delete document"
+          JSON.stringify(err?.response?.data) ||
+          "Failed to delete document"
       );
     }
   };
@@ -452,13 +451,17 @@ export default function DocumentManagement() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={8} className="empty">Loading documents...</td>
+                  <td colSpan={8} className="empty">
+                    Loading documents...
+                  </td>
                 </tr>
               )}
 
               {!loading && visible.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="empty">No documents found</td>
+                  <td colSpan={8} className="empty">
+                    No documents found
+                  </td>
                 </tr>
               )}
 
@@ -480,10 +483,18 @@ export default function DocumentManagement() {
                       </td>
                       <td>
                         <div className="doc-row-actions">
-                          <button className="btn small" onClick={() => handleView(d)}>View</button>
-                          <button className="btn small" onClick={() => handleDownload(d)}>Download</button>
-                          <button className="btn small" onClick={() => openEditModal(d)}>Edit</button>
-                          <button className="btn small ghost" onClick={() => handleDelete(d)}>Delete</button>
+                          <button className="btn small" onClick={() => handleView(d)}>
+                            View
+                          </button>
+                          <button className="btn small" onClick={() => handleDownload(d)}>
+                            Download
+                          </button>
+                          <button className="btn small" onClick={() => openEditModal(d)}>
+                            Edit
+                          </button>
+                          <button className="btn small ghost" onClick={() => handleDelete(d)}>
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -545,12 +556,18 @@ export default function DocumentManagement() {
 
               <label className="modal-label">
                 Document Name
-                <input value={formName} onChange={(e) => setFormName(e.target.value)} />
+                <input
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                />
               </label>
 
               <label className="modal-label">
                 Display Code
-                <input value={formCode} onChange={(e) => setFormCode(e.target.value)} />
+                <input
+                  value={formCode}
+                  onChange={(e) => setFormCode(e.target.value)}
+                />
               </label>
 
               <label className="modal-label">
@@ -623,8 +640,3 @@ export default function DocumentManagement() {
     </div>
   );
 }
-
-
-
-
-
