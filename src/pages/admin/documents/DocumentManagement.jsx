@@ -69,7 +69,7 @@ export default function DocumentManagement() {
 
   const loadCategories = async () => {
     try {
-      const res = await API.get("settings_app/documentcategory/");
+      const res = await API.get("documents/documents-categories/");
       const list = unwrapList(res?.data)
         .map(normalizeCategory)
         .filter((x) => x.id !== null && x.id !== undefined && x.name);
@@ -255,7 +255,7 @@ export default function DocumentManagement() {
     setAddingCategory(true);
 
     try {
-      await API.post("settings_app/documentcategory/", {
+      await API.post("documents/documents-categories/", {
         name: newCategoryName.trim(),
       });
 
