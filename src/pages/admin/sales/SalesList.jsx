@@ -59,6 +59,28 @@ const sortSalesNewestFirst = (rows = []) => {
   });
 };
 
+const normalizeSalesRows = (rows = []) => {
+  return rows.map((s) => ({
+    id: s.id,
+    acCode: s.acCode || ACCOUNT_CODE,
+    invoice: s.invoice || s.invoice_number || s.invoiceNumber || "",
+    customer:
+      s.customer?.name ||
+      s.customer_name ||
+      s.customer?.code_name ||
+      s.customer ||
+      "Unknown",
+    amount: Number(s.amount || s.total_amount || 0),
+    paid: Number(s.paid || s.paid_amount || 0),
+    outstanding: Number(s.outstanding || s.outstanding_amount || 0),
+    year: s.date ? new Date(s.date).getFullYear().toString() : "",
+    date: s.date || "",
+    product: s.product || s.product_name || "HFO",
+    status: s.status || "Unpaid",
+    raw: s
+  }));
+};
+
 export default function SalesList() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,6 +99,26 @@ export default function SalesList() {
 
     return sortSalesNewestFirst(salesData);
   });
+
+  const [acCode, setAcCode] = useState("");
+  const [invoice, setInvoice] = useState("");
+  const [customer, setCustomer] = useState("");
+  const [search, setSearch] = useState("");
+  const [tableYear, setTableYear] = useState("All");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
+
+  const [summaryYear, setSummaryYear] = useState("2026");
+  const [summaryRange, setSummaryRange] = useState("Month");
+
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentSale, setPaymentSale] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [paymentNote, setPaymentNote] = useState("");
+  const [submittingPayment, setSubmittingPayment] = useState(false);
 
   useEffect(() => {
     try {
@@ -123,44 +165,70 @@ export default function SalesList() {
         status: paid >= amount ? "Paid" : paid === 0 ? "Unpaid" : "Partial"
       };
 
-      setSales((prev) => sortSalesNewestFirst([newRow, ...prev]));
+      setSales((prev) => {
+        const alreadyExists = prev.some(
+          (item) =>
+            String(item.id) === String(newRow.id) ||
+            String(item.invoice) === String(newRow.invoice)
+        );
+
+        if (alreadyExists) {
+          return sortSalesNewestFirst(
+            prev.map((item) =>
+              String(item.id) === String(newRow.id) || String(item.invoice) === String(newRow.invoice)
+                ? newRow
+                : item
+            )
+          );
+        }
+
+        return sortSalesNewestFirst([newRow, ...prev]);
+      });
+
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
 
   useEffect(() => {
-    async function loadSales() {
-      try {
-        const res = await API.get("/sales/");
+    async function fetchAllSales() {
+      const allRows = [];
+      let nextUrl = "/sales/";
+
+      while (nextUrl) {
+        const res = await API.get(nextUrl);
         const data = res?.data;
 
-        const rows = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.results)
-          ? data.results
-          : Array.isArray(data?.sales)
-          ? data.sales
-          : [];
+        if (Array.isArray(data)) {
+          allRows.push(...data);
+          nextUrl = null;
+        } else if (Array.isArray(data?.results)) {
+          allRows.push(...data.results);
 
-        const mapped = rows.map((s) => ({
-          id: s.id,
-          acCode: s.acCode || ACCOUNT_CODE,
-          invoice: s.invoice || s.invoice_number || s.invoiceNumber || "",
-          customer:
-            s.customer?.name ||
-            s.customer_name ||
-            s.customer ||
-            "Unknown",
-          amount: Number(s.amount || s.total_amount || 0),
-          paid: Number(s.paid || s.paid_amount || 0),
-          outstanding: Number(s.outstanding || s.outstanding_amount || 0),
-          year: new Date(s.date).getFullYear().toString(),
-          date: s.date,
-          product: s.product || "HFO",
-          status: s.status || "Unpaid",
-          raw: s
-        }));
+          if (data.next) {
+            try {
+              const parsed = new URL(data.next);
+              nextUrl = `${parsed.pathname}${parsed.search}`;
+            } catch (e) {
+              nextUrl = String(data.next).replace(/^https?:\/\/[^/]+/i, "");
+            }
+          } else {
+            nextUrl = null;
+          }
+        } else if (Array.isArray(data?.sales)) {
+          allRows.push(...data.sales);
+          nextUrl = null;
+        } else {
+          nextUrl = null;
+        }
+      }
 
+      return allRows;
+    }
+
+    async function loadSales() {
+      try {
+        const rows = await fetchAllSales();
+        const mapped = normalizeSalesRows(rows);
         setSales(sortSalesNewestFirst(mapped));
       } catch (err) {
         console.error("Failed to load sales:", err?.response?.data || err.message);
@@ -169,26 +237,6 @@ export default function SalesList() {
 
     loadSales();
   }, []);
-
-  const [acCode, setAcCode] = useState("");
-  const [invoice, setInvoice] = useState("");
-  const [customer, setCustomer] = useState("");
-  const [search, setSearch] = useState("");
-  const [tableYear, setTableYear] = useState("All");
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
-
-  const [summaryYear, setSummaryYear] = useState("2026");
-  const [summaryRange, setSummaryRange] = useState("Month");
-
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [paymentSale, setPaymentSale] = useState(null);
-  const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
-  const [paymentMethod, setPaymentMethod] = useState("CASH");
-  const [paymentNote, setPaymentNote] = useState("");
-  const [submittingPayment, setSubmittingPayment] = useState(false);
 
   const openPaymentModal = (sale) => {
     setPaymentSale(sale);
@@ -238,10 +286,7 @@ export default function SalesList() {
           if (s.id !== paymentSale.id) return s;
 
           const newPaid = Number(s.paid || 0) + paidVal;
-          const newOutstanding = Math.max(
-            0,
-            Number(s.amount || 0) - newPaid
-          );
+          const newOutstanding = Math.max(0, Number(s.amount || 0) - newPaid);
 
           const newStatus =
             newPaid >= Number(s.amount || 0)
@@ -580,6 +625,14 @@ export default function SalesList() {
                   <td className="text-right"><strong>{pageTotals.paid.toLocaleString()}</strong></td>
                   <td className="text-right"><strong>{pageTotals.outstanding.toLocaleString()}</strong></td>
                   <td colSpan="2"></td>
+                </tr>
+              )}
+
+              {paginatedData.length === 0 && (
+                <tr>
+                  <td colSpan="10" style={{ textAlign: "center", padding: "20px" }}>
+                    No sales found
+                  </td>
                 </tr>
               )}
             </tbody>
