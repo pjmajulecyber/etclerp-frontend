@@ -131,18 +131,52 @@ export default function SalesList() {
   useEffect(() => {
     async function loadSales() {
       try {
-        const res = await API.get("/sales/");
-        const data = res?.data;
+        let allRows = [];
+        let nextUrl = "/sales/";
+        let safetyCounter = 0;
 
-        const rows = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.results)
-          ? data.results
-          : Array.isArray(data?.sales)
-          ? data.sales
-          : [];
+        while (nextUrl && safetyCounter < 100) {
+          const res = await API.get(nextUrl);
+          const data = res?.data;
 
-        const mapped = rows.map((s) => ({
+          const rows = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.results)
+            ? data.results
+            : Array.isArray(data?.sales)
+            ? data.sales
+            : [];
+
+          allRows = [...allRows, ...rows];
+
+          if (Array.isArray(data)) {
+            nextUrl = null;
+          } else if (data?.next) {
+            // support absolute next URLs from DRF pagination
+            try {
+              const apiBase = API.defaults.baseURL || "";
+              if (typeof data.next === "string" && apiBase && data.next.startsWith("http")) {
+                const fullBase = new URL(apiBase, window.location.origin);
+                const nextFull = new URL(data.next);
+                nextUrl = `${nextFull.pathname}${nextFull.search}`;
+                if (apiBase.startsWith("http")) {
+                  const apiBaseUrl = new URL(apiBase);
+                  nextUrl = nextUrl.replace(apiBaseUrl.pathname.replace(/\/$/, ""), apiBaseUrl.pathname.replace(/\/$/, ""));
+                }
+              } else {
+                nextUrl = data.next;
+              }
+            } catch {
+              nextUrl = data.next;
+            }
+          } else {
+            nextUrl = null;
+          }
+
+          safetyCounter += 1;
+        }
+
+        const mapped = allRows.map((s) => ({
           id: s.id,
           acCode: s.acCode || ACCOUNT_CODE,
           invoice: s.invoice || s.invoice_number || s.invoiceNumber || "",
@@ -151,13 +185,26 @@ export default function SalesList() {
             s.customer_name ||
             s.customer ||
             "Unknown",
-          amount: Number(s.amount || s.total_amount || 0),
+          amount: Number(s.amount || s.total_amount || s.total || 0),
           paid: Number(s.paid || s.paid_amount || 0),
-          outstanding: Number(s.outstanding || s.outstanding_amount || 0),
-          year: new Date(s.date).getFullYear().toString(),
-          date: s.date,
+          outstanding:
+            Number(
+              s.outstanding ||
+              s.outstanding_amount ||
+              Math.max(0, Number(s.amount || s.total_amount || s.total || 0) - Number(s.paid || s.paid_amount || 0))
+            ),
+          year: s.date ? new Date(s.date).getFullYear().toString() : "",
+          date: s.date || "",
           product: s.product || "HFO",
-          status: s.status || "Unpaid",
+          status:
+            s.status ||
+            (
+              Number(s.paid || s.paid_amount || 0) >= Number(s.amount || s.total_amount || s.total || 0)
+                ? "Paid"
+                : Number(s.paid || s.paid_amount || 0) === 0
+                ? "Unpaid"
+                : "Partial"
+            ),
           raw: s
         }));
 
@@ -290,20 +337,14 @@ export default function SalesList() {
   };
 
   const summary = useMemo(() => {
-    // 🔥 always use FULL sales (not paginated, not filteredTable)
-    const base = Array.isArray(sales) ? sales : [];
-  
-    const filtered = summaryYear === "All"
-      ? base
-      : base.filter((s) => s.year === summaryYear);
-  
+    const filtered = sales.filter((s) => s.year === summaryYear);
     return {
-      totalSales: filtered.reduce((a, b) => a + Number(b.amount || 0), 0),
-      totalDue: filtered.reduce((a, b) => a + Number(b.outstanding || 0), 0),
+      totalSales: filtered.reduce((a, b) => a + (Number(b.amount) || 0), 0),
+      totalDue: filtered.reduce((a, b) => a + (Number(b.outstanding) || 0), 0),
       invoices: filtered.length,
-      overdue: filtered.filter((s) => Number(s.outstanding || 0) > 0).length
+      overdue: filtered.filter((s) => (Number(s.outstanding) || 0) > 0).length
     };
-  }, [sales, summaryYear]);
+  }, [summaryYear, summaryRange, sales]);
 
   const filteredTable = useMemo(() => {
     const codeFilter = (acCode || "").trim().toLowerCase();
@@ -554,7 +595,7 @@ export default function SalesList() {
 
             <tbody>
               {paginatedData.map((row) => (
-                <tr key={row.id}> 
+                <tr key={row.id}>
                   <td>{row.date}</td>
                   <td>{row.acCode}</td>
                   <td>{row.invoice}</td>
