@@ -290,14 +290,20 @@ export default function SalesList() {
   };
 
   const summary = useMemo(() => {
-    const filtered = sales.filter((s) => s.year === summaryYear);
+    // 🔥 always use FULL sales (not paginated, not filteredTable)
+    const base = Array.isArray(sales) ? sales : [];
+  
+    const filtered = summaryYear === "All"
+      ? base
+      : base.filter((s) => s.year === summaryYear);
+  
     return {
-      totalSales: filtered.reduce((a, b) => a + (Number(b.amount) || 0), 0),
-      totalDue: filtered.reduce((a, b) => a + (Number(b.outstanding) || 0), 0),
+      totalSales: filtered.reduce((a, b) => a + Number(b.amount || 0), 0),
+      totalDue: filtered.reduce((a, b) => a + Number(b.outstanding || 0), 0),
       invoices: filtered.length,
-      overdue: filtered.filter((s) => (Number(s.outstanding) || 0) > 0).length
+      overdue: filtered.filter((s) => Number(s.outstanding || 0) > 0).length
     };
-  }, [summaryYear, summaryRange, sales]);
+  }, [sales, summaryYear]);
 
   const filteredTable = useMemo(() => {
     const codeFilter = (acCode || "").trim().toLowerCase();
