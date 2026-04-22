@@ -94,7 +94,9 @@ export default function SalesList() {
 
     if (candidate && typeof candidate === "object") {
       const id = Number(candidate.id || Date.now());
-      const amount = Number(candidate.amount || candidate.total || candidate.totalAmount || 0);
+      const amount = Number(
+        candidate.amount || candidate.total || candidate.totalAmount || 0
+      );
       const paid = Number(candidate.paid || candidate.paidAmount || 0);
       const outstanding = Math.max(0, amount - paid);
       const year =
@@ -132,7 +134,7 @@ export default function SalesList() {
     async function loadSales() {
       try {
         let allRows = [];
-        let nextUrl = "/sales/";
+        let nextUrl = "/sales/?page_size=100";
         let safetyCounter = 0;
 
         while (nextUrl && safetyCounter < 100) {
@@ -152,20 +154,9 @@ export default function SalesList() {
           if (Array.isArray(data)) {
             nextUrl = null;
           } else if (data?.next) {
-            // support absolute next URLs from DRF pagination
             try {
-              const apiBase = API.defaults.baseURL || "";
-              if (typeof data.next === "string" && apiBase && data.next.startsWith("http")) {
-                const fullBase = new URL(apiBase, window.location.origin);
-                const nextFull = new URL(data.next);
-                nextUrl = `${nextFull.pathname}${nextFull.search}`;
-                if (apiBase.startsWith("http")) {
-                  const apiBaseUrl = new URL(apiBase);
-                  nextUrl = nextUrl.replace(apiBaseUrl.pathname.replace(/\/$/, ""), apiBaseUrl.pathname.replace(/\/$/, ""));
-                }
-              } else {
-                nextUrl = data.next;
-              }
+              const next = new URL(data.next);
+              nextUrl = `${next.pathname}${next.search}`;
             } catch {
               nextUrl = data.next;
             }
@@ -176,41 +167,43 @@ export default function SalesList() {
           safetyCounter += 1;
         }
 
-        const mapped = allRows.map((s) => ({
-          id: s.id,
-          acCode: s.acCode || ACCOUNT_CODE,
-          invoice: s.invoice || s.invoice_number || s.invoiceNumber || "",
-          customer:
-            s.customer?.name ||
-            s.customer_name ||
-            s.customer ||
-            "Unknown",
-          amount: Number(s.amount || s.total_amount || s.total || 0),
-          paid: Number(s.paid || s.paid_amount || 0),
-          outstanding:
-            Number(
-              s.outstanding ||
+        const mapped = allRows.map((s) => {
+          const amount = Number(s.amount || s.total_amount || s.total || 0);
+          const paid = Number(s.paid || s.paid_amount || 0);
+          const outstanding = Number(
+            s.outstanding ||
               s.outstanding_amount ||
-              Math.max(0, Number(s.amount || s.total_amount || s.total || 0) - Number(s.paid || s.paid_amount || 0))
-            ),
-          year: s.date ? new Date(s.date).getFullYear().toString() : "",
-          date: s.date || "",
-          product: s.product || "HFO",
-          status:
-            s.status ||
-            (
-              Number(s.paid || s.paid_amount || 0) >= Number(s.amount || s.total_amount || s.total || 0)
-                ? "Paid"
-                : Number(s.paid || s.paid_amount || 0) === 0
-                ? "Unpaid"
-                : "Partial"
-            ),
-          raw: s
-        }));
+              Math.max(0, amount - paid)
+          );
+
+          return {
+            id: s.id,
+            acCode: s.acCode || ACCOUNT_CODE,
+            invoice: s.invoice || s.invoice_number || s.invoiceNumber || "",
+            customer:
+              s.customer?.name ||
+              s.customer_name ||
+              s.customer ||
+              "Unknown",
+            amount,
+            paid,
+            outstanding,
+            year: s.date ? new Date(s.date).getFullYear().toString() : "",
+            date: s.date || "",
+            product: s.product || "HFO",
+            status:
+              s.status ||
+              (paid >= amount ? "Paid" : paid === 0 ? "Unpaid" : "Partial"),
+            raw: s
+          };
+        });
 
         setSales(sortSalesNewestFirst(mapped));
       } catch (err) {
-        console.error("Failed to load sales:", err?.response?.data || err.message);
+        console.error(
+          "Failed to load sales:",
+          err?.response?.data || err.message
+        );
       }
     }
 
@@ -232,7 +225,9 @@ export default function SalesList() {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentSale, setPaymentSale] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentDate, setPaymentDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [paymentNote, setPaymentNote] = useState("");
   const [submittingPayment, setSubmittingPayment] = useState(false);
@@ -285,10 +280,7 @@ export default function SalesList() {
           if (s.id !== paymentSale.id) return s;
 
           const newPaid = Number(s.paid || 0) + paidVal;
-          const newOutstanding = Math.max(
-            0,
-            Number(s.amount || 0) - newPaid
-          );
+          const newOutstanding = Math.max(0, Number(s.amount || 0) - newPaid);
 
           const newStatus =
             newPaid >= Number(s.amount || 0)
@@ -306,8 +298,8 @@ export default function SalesList() {
               payment_date: paymentDate,
               amount: paidVal,
               payment_method: paymentMethod,
-              notes: paymentNote,
-            },
+              notes: paymentNote
+            }
           };
         });
 
@@ -326,11 +318,9 @@ export default function SalesList() {
       console.error("Payment failed:", err?.response?.data || err.message);
       alert(
         "Payment failed: " +
-          (
-            err?.response?.data?.detail ||
+          (err?.response?.data?.detail ||
             JSON.stringify(err?.response?.data) ||
-            err.message
-          )
+            err.message)
       );
       setSubmittingPayment(false);
     }
@@ -340,7 +330,10 @@ export default function SalesList() {
     const filtered = sales.filter((s) => s.year === summaryYear);
     return {
       totalSales: filtered.reduce((a, b) => a + (Number(b.amount) || 0), 0),
-      totalDue: filtered.reduce((a, b) => a + (Number(b.outstanding) || 0), 0),
+      totalDue: filtered.reduce(
+        (a, b) => a + (Number(b.outstanding) || 0),
+        0
+      ),
       invoices: filtered.length,
       overdue: filtered.filter((s) => (Number(s.outstanding) || 0) > 0).length
     };
@@ -353,14 +346,24 @@ export default function SalesList() {
     const yearFilter = tableYear;
 
     const customerInput = (customer || "").trim().toLowerCase();
-    const customerTokens = customerInput ? customerInput.split(/\s+/).filter(Boolean) : [];
+    const customerTokens = customerInput
+      ? customerInput.split(/\s+/).filter(Boolean)
+      : [];
 
     return sales.filter((s) => {
       if (yearFilter !== "All" && s.year !== yearFilter) return false;
 
-      if (codeFilter && !String(s.acCode || "").toLowerCase().includes(codeFilter)) return false;
+      if (
+        codeFilter &&
+        !String(s.acCode || "").toLowerCase().includes(codeFilter)
+      )
+        return false;
 
-      if (invoiceFilter && !String(s.invoice || "").toLowerCase().includes(invoiceFilter)) return false;
+      if (
+        invoiceFilter &&
+        !String(s.invoice || "").toLowerCase().includes(invoiceFilter)
+      )
+        return false;
 
       if (customerTokens.length > 0) {
         const name = String(s.customer || "").toLowerCase();
@@ -371,7 +374,11 @@ export default function SalesList() {
         if (!allTokensMatch) return false;
       }
 
-      if (searchFilter && !JSON.stringify(s).toLowerCase().includes(searchFilter)) return false;
+      if (
+        searchFilter &&
+        !JSON.stringify(s).toLowerCase().includes(searchFilter)
+      )
+        return false;
 
       return true;
     });
@@ -455,9 +462,21 @@ export default function SalesList() {
         </div>
 
         <div className="salesList-summaryGrid">
-          <SummaryCard label="Total Sales" value={summary.totalSales} type="blue" />
-          <SummaryCard label="Sales Due" value={summary.totalDue} type="orange" />
-          <SummaryCard label="Invoices" value={summary.invoices} type="green" />
+          <SummaryCard
+            label="Total Sales"
+            value={summary.totalSales}
+            type="blue"
+          />
+          <SummaryCard
+            label="Sales Due"
+            value={summary.totalDue}
+            type="orange"
+          />
+          <SummaryCard
+            label="Invoices"
+            value={summary.invoices}
+            type="green"
+          />
           <SummaryCard label="Overdue" value={summary.overdue} type="red" />
         </div>
       </div>
@@ -465,28 +484,36 @@ export default function SalesList() {
       <div className="salesList-tabs">
         <NavLink
           to="/admin/sales/list"
-          className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
+          className={({ isActive }) =>
+            isActive ? "salesList-tab active" : "salesList-tab"
+          }
         >
           Sales Order
         </NavLink>
 
         <NavLink
           to="/admin/sales/invoice"
-          className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
+          className={({ isActive }) =>
+            isActive ? "salesList-tab active" : "salesList-tab"
+          }
         >
           Invoice
         </NavLink>
 
         <NavLink
           to="/admin/sales/quotation"
-          className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
+          className={({ isActive }) =>
+            isActive ? "salesList-tab active" : "salesList-tab"
+          }
         >
           Quotation
         </NavLink>
 
         <NavLink
           to="/admin/sales/overdue"
-          className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
+          className={({ isActive }) =>
+            isActive ? "salesList-tab active" : "salesList-tab"
+          }
         >
           Overdue
         </NavLink>
@@ -530,19 +557,41 @@ export default function SalesList() {
               className="salesList-btn salesList-btn-pdf"
               onClick={() => {
                 const csv = [
-                  ["Date", "Code", "Invoice", "Customer", "Product", "Amount", "Paid", "Outstanding"].join(","),
+                  [
+                    "Date",
+                    "Code",
+                    "Invoice",
+                    "Customer",
+                    "Product",
+                    "Amount",
+                    "Paid",
+                    "Outstanding"
+                  ].join(","),
                   ...filteredTable.map((r) =>
-                    [r.date, r.acCode, r.invoice, r.customer, r.product, r.amount, r.paid, r.outstanding]
+                    [
+                      r.date,
+                      r.acCode,
+                      r.invoice,
+                      r.customer,
+                      r.product,
+                      r.amount,
+                      r.paid,
+                      r.outstanding
+                    ]
                       .map((c) => `"${String(c).replace(/"/g, '""')}"`)
                       .join(",")
                   )
                 ].join("\n");
 
-                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const blob = new Blob([csv], {
+                  type: "text/csv;charset=utf-8;"
+                });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `sales-export-${new Date().toISOString().slice(0, 10)}.csv`;
+                a.download = `sales-export-${new Date()
+                  .toISOString()
+                  .slice(0, 10)}.csv`;
                 a.click();
                 URL.revokeObjectURL(url);
               }}
@@ -554,19 +603,41 @@ export default function SalesList() {
               className="salesList-btn salesList-btn-excel"
               onClick={() => {
                 const csv = [
-                  ["Date", "Code", "Invoice", "Customer", "Product", "Amount", "Paid", "Outstanding"].join(","),
+                  [
+                    "Date",
+                    "Code",
+                    "Invoice",
+                    "Customer",
+                    "Product",
+                    "Amount",
+                    "Paid",
+                    "Outstanding"
+                  ].join(","),
                   ...filteredTable.map((r) =>
-                    [r.date, r.acCode, r.invoice, r.customer, r.product, r.amount, r.paid, r.outstanding]
+                    [
+                      r.date,
+                      r.acCode,
+                      r.invoice,
+                      r.customer,
+                      r.product,
+                      r.amount,
+                      r.paid,
+                      r.outstanding
+                    ]
                       .map((c) => `"${String(c).replace(/"/g, '""')}"`)
                       .join(",")
                   )
                 ].join("\n");
 
-                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const blob = new Blob([csv], {
+                  type: "text/csv;charset=utf-8;"
+                });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `sales-export-${new Date().toISOString().slice(0, 10)}.csv`;
+                a.download = `sales-export-${new Date()
+                  .toISOString()
+                  .slice(0, 10)}.csv`;
                 a.click();
                 URL.revokeObjectURL(url);
               }}
@@ -601,19 +672,37 @@ export default function SalesList() {
                   <td>{row.invoice}</td>
                   <td>{row.customer}</td>
                   <td>{row.product}</td>
-                  <td className="text-right">{Number(row.amount || 0).toLocaleString()}</td>
-                  <td className="text-right">{Number(row.paid || 0).toLocaleString()}</td>
-                  <td className="text-right">{Number(row.outstanding || 0).toLocaleString()}</td>
+                  <td className="text-right">
+                    {Number(row.amount || 0).toLocaleString()}
+                  </td>
+                  <td className="text-right">
+                    {Number(row.paid || 0).toLocaleString()}
+                  </td>
+                  <td className="text-right">
+                    {Number(row.outstanding || 0).toLocaleString()}
+                  </td>
                   <td>
-                    <span className={`salesList-status ${String(row.status || "").toLowerCase()}`}>
+                    <span
+                      className={`salesList-status ${String(
+                        row.status || ""
+                      ).toLowerCase()}`}
+                    >
                       {row.status}
                     </span>
                   </td>
                   <td className="salesList-actions">
-                    <button className="icon-btn view" title="View" onClick={() => goToInvoicePreview(row)}>
+                    <button
+                      className="icon-btn view"
+                      title="View"
+                      onClick={() => goToInvoicePreview(row)}
+                    >
                       <FiEye />
                     </button>
-                    <button className="icon-btn receive" title="Receive Payment" onClick={() => openPaymentModal(row)}>
+                    <button
+                      className="icon-btn receive"
+                      title="Receive Payment"
+                      onClick={() => openPaymentModal(row)}
+                    >
                       <FiDollarSign />
                     </button>
                   </td>
@@ -622,10 +711,18 @@ export default function SalesList() {
 
               {paginatedData.length > 0 && (
                 <tr className="salesList-totalRow">
-                  <td colSpan="5"><strong>Total (This Page)</strong></td>
-                  <td className="text-right"><strong>{pageTotals.amount.toLocaleString()}</strong></td>
-                  <td className="text-right"><strong>{pageTotals.paid.toLocaleString()}</strong></td>
-                  <td className="text-right"><strong>{pageTotals.outstanding.toLocaleString()}</strong></td>
+                  <td colSpan="5">
+                    <strong>Total (This Page)</strong>
+                  </td>
+                  <td className="text-right">
+                    <strong>{pageTotals.amount.toLocaleString()}</strong>
+                  </td>
+                  <td className="text-right">
+                    <strong>{pageTotals.paid.toLocaleString()}</strong>
+                  </td>
+                  <td className="text-right">
+                    <strong>{pageTotals.outstanding.toLocaleString()}</strong>
+                  </td>
                   <td colSpan="2"></td>
                 </tr>
               )}
@@ -648,13 +745,19 @@ export default function SalesList() {
           </select>
 
           <div className="salesList-pageButtons">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
               Previous
             </button>
 
             <button className="active">{currentPage}</button>
 
-            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
               Next
             </button>
           </div>
@@ -689,7 +792,12 @@ export default function SalesList() {
 
               <label>
                 Outstanding (Tsh)
-                <input value={Number(paymentSale.outstanding || 0).toLocaleString()} readOnly />
+                <input
+                  value={Number(
+                    paymentSale.outstanding || 0
+                  ).toLocaleString()}
+                  readOnly
+                />
               </label>
 
               <label>
@@ -706,7 +814,10 @@ export default function SalesList() {
 
               <label>
                 Method
-                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                >
                   <option value="CASH">Cash</option>
                   <option value="BANK">Bank Transfer</option>
                   <option value="MOBILE">Mobile Money</option>
@@ -724,10 +835,18 @@ export default function SalesList() {
               </label>
 
               <div className="modal-actions">
-                <button type="button" className="btn ghost" onClick={closePaymentModal}>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={closePaymentModal}
+                >
                   Cancel
                 </button>
-                <button type="submit" className="btn primary" disabled={submittingPayment}>
+                <button
+                  type="submit"
+                  className="btn primary"
+                  disabled={submittingPayment}
+                >
                   {submittingPayment ? "Saving..." : "Receive Payment"}
                 </button>
               </div>
