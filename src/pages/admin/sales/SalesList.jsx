@@ -59,6 +59,23 @@ const sortSalesNewestFirst = (rows = []) => {
   });
 };
 
+const cleanNextSalesUrl = (nextUrl) => {
+  if (!nextUrl) return null;
+
+  let cleaned = String(nextUrl);
+
+  try {
+    const parsed = new URL(cleaned);
+    cleaned = `${parsed.pathname}${parsed.search}`;
+  } catch {
+    cleaned = cleaned.replace(window.location.origin, "");
+  }
+
+  return cleaned
+    .replace(/^\/+/, "")
+    .replace(/^(api\/)+/i, "");
+};
+
 export default function SalesList() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -134,7 +151,7 @@ export default function SalesList() {
     async function loadSales() {
       try {
         let allRows = [];
-        let nextUrl = "/sales/?page_size=100";
+        let nextUrl = "sales/?page_size=100";
         let safetyCounter = 0;
 
         while (nextUrl && safetyCounter < 100) {
@@ -153,15 +170,8 @@ export default function SalesList() {
 
           if (Array.isArray(data)) {
             nextUrl = null;
-          } else if (data?.next) {
-            try {
-              const next = new URL(data.next);
-              nextUrl = `${next.pathname}${next.search}`;
-            } catch {
-              nextUrl = data.next;
-            }
           } else {
-            nextUrl = null;
+            nextUrl = cleanNextSalesUrl(data?.next);
           }
 
           safetyCounter += 1;
