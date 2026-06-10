@@ -30,7 +30,7 @@ export default function Topbar() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await API.get("/users/");
+        const res = await API.get("/users/me/");
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
       } catch (err) {
