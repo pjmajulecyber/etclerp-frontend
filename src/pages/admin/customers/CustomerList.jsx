@@ -1,5 +1,3 @@
-
-
 // src/pages/admin/Customers/CustomerList.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +21,17 @@ const MOCK_CUSTOMERS = [
     isNew: false
   }
 ];
+
+const defaultBranch = () => ({
+  branch_name: "Main Branch",
+  location: "",
+  address: "",
+  phone: "",
+  email: "",
+  tin: "",
+  vrn: "",
+  is_primary: true
+});
 
 const normalizeCustomer = (item) => {
   const openingDebit = Number(
@@ -68,7 +77,8 @@ const normalizeCustomer = (item) => {
     credit,
     balance,
     status: String(item?.status ?? "ACTIVE").toUpperCase(),
-    isNew: item?.isNew ?? false
+    isNew: item?.isNew ?? false,
+    branches: Array.isArray(item?.branches) ? item.branches : []
   };
 };
 
@@ -121,7 +131,8 @@ export default function CustomerList() {
     receivable_account: "",
     receivable_account_code: "",
     opening_balance: 0,
-    status: "ACTIVE"
+    status: "ACTIVE",
+    branches: [defaultBranch()]
   });
 
   useEffect(() => {
@@ -223,26 +234,139 @@ export default function CustomerList() {
     }));
   };
 
+  const handleBranchInput = (index, field, value) => {
+    setNewCustomer((prev) => {
+      const branches = [...(prev.branches || [])];
+
+      branches[index] = {
+        ...branches[index],
+        [field]: value
+      };
+
+      return {
+        ...prev,
+        branches
+      };
+    });
+  };
+
+  const addBranchRow = () => {
+    setNewCustomer((prev) => ({
+      ...prev,
+      branches: [
+        ...(prev.branches || []),
+        {
+          branch_name: "",
+          location: "",
+          address: "",
+          phone: "",
+          email: "",
+          tin: "",
+          vrn: "",
+          is_primary: false
+        }
+      ]
+    }));
+  };
+
+  const removeBranchRow = (index) => {
+    setNewCustomer((prev) => {
+      const branches = (prev.branches || []).filter((_, i) => i !== index);
+
+      if (!branches.length) {
+        return {
+          ...prev,
+          branches: [defaultBranch()]
+        };
+      }
+
+      const hasPrimary = branches.some((b) => b.is_primary);
+
+      return {
+        ...prev,
+        branches: hasPrimary
+          ? branches
+          : branches.map((b, i) => ({
+              ...b,
+              is_primary: i === 0
+            }))
+      };
+    });
+  };
+
+  const setPrimaryBranch = (index) => {
+    setNewCustomer((prev) => ({
+      ...prev,
+      branches: (prev.branches || []).map((branch, i) => ({
+        ...branch,
+        is_primary: i === index
+      }))
+    }));
+  };
+
   const handleSaveCustomer = async () => {
     if (!newCustomer.name) return;
 
     setCreateErrors(null);
+
+    const cleanBranches = (newCustomer.branches || [])
+      .filter((b) =>
+        b.branch_name ||
+        b.location ||
+        b.address ||
+        b.phone ||
+        b.email ||
+        b.tin ||
+        b.vrn
+      )
+      .map((b, index) => ({
+        branch_name: b.branch_name || `Branch ${index + 1}`,
+        location: b.location || "",
+        address: b.address || "",
+        phone: b.phone || "",
+        email: b.email || "",
+        tin: b.tin || "",
+        vrn: b.vrn || "",
+        is_primary: Boolean(b.is_primary)
+      }));
+
+    const primaryBranch =
+      cleanBranches.find((b) => b.is_primary) ||
+      cleanBranches[0] ||
+      null;
 
     const minimalPayload = {
       name: newCustomer.name,
     };
 
     if (newCustomer.code) minimalPayload.code = newCustomer.code;
-    if (newCustomer.phone) minimalPayload.phone = newCustomer.phone;
-    if (newCustomer.email) minimalPayload.email = newCustomer.email;
-    if (newCustomer.address) minimalPayload.address = newCustomer.address;
-    if (newCustomer.tin) minimalPayload.tin = newCustomer.tin;
-    if (newCustomer.vrn) minimalPayload.vrn = newCustomer.vrn;
+
+    if (primaryBranch) {
+      minimalPayload.location = primaryBranch.location || newCustomer.location;
+      minimalPayload.phone = primaryBranch.phone || newCustomer.phone;
+      minimalPayload.email = primaryBranch.email || newCustomer.email;
+      minimalPayload.address = primaryBranch.address || newCustomer.address;
+      minimalPayload.tin = primaryBranch.tin || newCustomer.tin;
+      minimalPayload.vrn = primaryBranch.vrn || newCustomer.vrn;
+    } else {
+      if (newCustomer.location) minimalPayload.location = newCustomer.location;
+      if (newCustomer.phone) minimalPayload.phone = newCustomer.phone;
+      if (newCustomer.email) minimalPayload.email = newCustomer.email;
+      if (newCustomer.address) minimalPayload.address = newCustomer.address;
+      if (newCustomer.tin) minimalPayload.tin = newCustomer.tin;
+      if (newCustomer.vrn) minimalPayload.vrn = newCustomer.vrn;
+    }
+
     if (newCustomer.opening_balance) {
       minimalPayload.opening_balance = Number(newCustomer.opening_balance);
     }
+
     if (newCustomer.status) {
       minimalPayload.status = String(newCustomer.status).toUpperCase();
+    }
+
+    if (cleanBranches.length > 0) {
+      minimalPayload.branches = cleanBranches;
     }
 
     try {
@@ -252,6 +376,7 @@ export default function CustomerList() {
       if (err?.response?.data) {
         console.error("Create customer failed:", err.response.data);
         setCreateErrors(err.response.data);
+        return;
       } else {
         console.error("API save failed, using local fallback", err);
 
@@ -260,16 +385,20 @@ export default function CustomerList() {
         const tableCustomer = normalizeCustomer({
           code,
           name: newCustomer.name,
-          location: newCustomer.location,
-          phone: newCustomer.phone,
-          email: newCustomer.email,
+          location: primaryBranch?.location || newCustomer.location,
+          phone: primaryBranch?.phone || newCustomer.phone,
+          email: primaryBranch?.email || newCustomer.email,
+          address: primaryBranch?.address || newCustomer.address,
+          tin: primaryBranch?.tin || newCustomer.tin,
+          vrn: primaryBranch?.vrn || newCustomer.vrn,
           opening_balance: Number(newCustomer.opening_balance || 0),
           opening_debit: Number(newCustomer.opening_balance || 0),
           debit: 0,
           credit: 0,
           balance: Number(newCustomer.opening_balance || 0),
           status: newCustomer.status,
-          isNew: true
+          isNew: true,
+          branches: cleanBranches
         });
 
         setCustomers(prev => [tableCustomer, ...prev]);
@@ -292,7 +421,8 @@ export default function CustomerList() {
       receivable_account: "",
       receivable_account_code: "",
       opening_balance: 0,
-      status: "ACTIVE"
+      status: "ACTIVE",
+      branches: [defaultBranch()]
     });
   };
 
@@ -566,8 +696,89 @@ export default function CustomerList() {
               </div>
 
               <div className="customerModal-row">
-                <label>Address</label>
-                <input value={newCustomer.address} onChange={(e)=>handleCustomerInput("address",e.target.value)} />
+                <label>Customer Branches / Addresses</label>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+                  {(newCustomer.branches || []).map((branch, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "10px",
+                        padding: "12px",
+                        display: "grid",
+                        gap: "8px"
+                      }}
+                    >
+                      <input
+                        placeholder="Branch Name e.g. Main Branch"
+                        value={branch.branch_name}
+                        onChange={(e) => handleBranchInput(index, "branch_name", e.target.value)}
+                      />
+
+                      <input
+                        placeholder="Location e.g. Dar es Salaam"
+                        value={branch.location}
+                        onChange={(e) => handleBranchInput(index, "location", e.target.value)}
+                      />
+
+                      <input
+                        placeholder="Address"
+                        value={branch.address}
+                        onChange={(e) => handleBranchInput(index, "address", e.target.value)}
+                      />
+
+                      <input
+                        placeholder="Phone"
+                        value={branch.phone}
+                        onChange={(e) => handleBranchInput(index, "phone", e.target.value)}
+                      />
+
+                      <input
+                        placeholder="Email"
+                        value={branch.email}
+                        onChange={(e) => handleBranchInput(index, "email", e.target.value)}
+                      />
+
+                      <input
+                        placeholder="TIN"
+                        value={branch.tin}
+                        onChange={(e) => handleBranchInput(index, "tin", e.target.value)}
+                      />
+
+                      <input
+                        placeholder="VRN"
+                        value={branch.vrn}
+                        onChange={(e) => handleBranchInput(index, "vrn", e.target.value)}
+                      />
+
+                      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                        <label style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                          <input
+                            type="radio"
+                            checked={Boolean(branch.is_primary)}
+                            onChange={() => setPrimaryBranch(index)}
+                          />
+                          Primary Address
+                        </label>
+
+                        {newCustomer.branches.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={() => removeBranchRow(index)}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  <button type="button" className="btn" onClick={addBranchRow}>
+                    + Add Another Branch
+                  </button>
+                </div>
               </div>
 
               <div className="customerModal-row">

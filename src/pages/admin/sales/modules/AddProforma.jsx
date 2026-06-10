@@ -1,27 +1,76 @@
 
 
-
 import "./AddProforma.css";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import API from "../../../../services/api";
 
 const customersDB = [
-  { id: 1, code: "45010", name: "Shanta Gold" },
-  { id: 2, code: "45020", name: "Lake Steel Industries" },
-  { id: 3, code: "45030", name: "Lodhia Industries" },
-  { id: 4, code: "45040", name: "Tanzania Breweries Limited" },
-  { id: 5, code: "45050", name: "Steel Master Industries" },
-  { id: 6, code: "45060", name: "Muhimbili National Hospital" },
-  { id: 7, code: "45070", name: "Tanzania Biotech Products ltd" },
-  { id: 8, code: "45080", name: "Mufindi Papermill industries" },
-  { id: 9, code: "45090", name: "Morogoro Tobacco Industries" },
-  { id: 10, code: "45100", name: "Benjamin Mkapa Hospital" },
-  { id: 11, code: "45110", name: "Fulcon Tanzania" },
-  { id: 12, code: "45120", name: "Jambo Industries Limited" },
-  { id: 13, code: "45130", name: "Mbeya Cement Factory Ltd" },
-  { id: 14, code: "45140", name: "East Africa Spirits Ltd" },
-  { id: 15, code: "45150", name: "Pepsi Cola Mbeya" },
-  { id: 16, code: "45999", name: "Other" }
+  {
+    id: 1,
+    code: "45010",
+    accCode: "45010",
+    name: "Shanta Gold",
+    address: "Songwe, Tanzania",
+    phone: "255700000001",
+    email: "info@shantagold.com",
+    tin: "100-000-001",
+    vrn: "40-000001-A",
+    branches: [
+      {
+        id: 101,
+        branch_name: "Mine Site",
+        location: "Songwe",
+        address: "New Luika Mine Site, Songwe",
+        phone: "255700000001",
+        email: "mine@shantagold.com",
+        tin: "100-000-001",
+        vrn: "40-000001-A",
+        is_primary: true
+      },
+      {
+        id: 102,
+        branch_name: "Dar Office",
+        location: "Dar es Salaam",
+        address: "Masaki, Dar es Salaam",
+        phone: "255700000002",
+        email: "dar@shantagold.com",
+        tin: "100-000-001",
+        vrn: "40-000001-A",
+        is_primary: false
+      }
+    ]
+  },
+  {
+    id: 2,
+    code: "45020",
+    accCode: "45020",
+    name: "Lake Steel Industries",
+    address: "Mwanza, Tanzania",
+    branches: [
+      {
+        id: 201,
+        branch_name: "Main Branch",
+        location: "Mwanza",
+        address: "Ilemela, Mwanza",
+        is_primary: true
+      }
+    ]
+  },
+  { id: 3, code: "45030", accCode: "45030", name: "Lodhia Industries", address: "Arusha", branches: [] },
+  { id: 4, code: "45040", accCode: "45040", name: "Tanzania Breweries Limited", address: "Dar es Salaam", branches: [] },
+  { id: 5, code: "45050", accCode: "45050", name: "Steel Master Industries", address: "Dar es Salaam", branches: [] },
+  { id: 6, code: "45060", accCode: "45060", name: "Muhimbili National Hospital", address: "Upanga", branches: [] },
+  { id: 7, code: "45070", accCode: "45070", name: "Tanzania Biotech Products ltd", address: "Dar es Salaam", branches: [] },
+  { id: 8, code: "45080", accCode: "45080", name: "Mufindi Papermill industries", address: "Mufindi", branches: [] },
+  { id: 9, code: "45090", accCode: "45090", name: "Morogoro Tobacco Industries", address: "Morogoro", branches: [] },
+  { id: 10, code: "45100", accCode: "45100", name: "Benjamin Mkapa Hospital", address: "Dodoma", branches: [] },
+  { id: 11, code: "45110", accCode: "45110", name: "Fulcon Tanzania", address: "Dar es Salaam", branches: [] },
+  { id: 12, code: "45120", accCode: "45120", name: "Jambo Industries Limited", address: "Dar es Salaam", branches: [] },
+  { id: 13, code: "45130", accCode: "45130", name: "Mbeya Cement Factory Ltd", address: "Mbeya", branches: [] },
+  { id: 14, code: "45140", accCode: "45140", name: "East Africa Spirits Ltd", address: "Dar es Salaam", branches: [] },
+  { id: 15, code: "45150", accCode: "45150", name: "Pepsi Cola Mbeya", address: "Mbeya", branches: [] },
+  { id: 16, code: "45999", accCode: "45999", name: "Other", branches: [] }
 ];
 
 const productsDB = [
@@ -49,8 +98,13 @@ export default function AddProformaModal({ onClose }) {
     else navigate("/admin/sales/proforma-invoices");
   };
 
+  const [customersAPI, setCustomersAPI] = useState([]);
+
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [customerBranches, setCustomerBranches] = useState([]);
+  const [selectedCustomerBranch, setSelectedCustomerBranch] = useState(null);
+
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [referenceNo, setReferenceNo] = useState("");
 
@@ -60,18 +114,141 @@ export default function AddProformaModal({ onClose }) {
 
   const proformaNumber = incoming?.invoiceNumber || `PF-2026-${proformaCounter}`;
 
+  const unwrapList = (data) => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.results)) return data.results;
+    if (Array.isArray(data?.customers)) return data.customers;
+    return [];
+  };
+
+  const normalizeCustomer = (customer) => {
+    return {
+      ...customer,
+      id: customer?.id ?? customer?.pk ?? null,
+      code: customer?.code ?? customer?.accCode ?? "",
+      accCode: customer?.accCode ?? customer?.code ?? "",
+      name: customer?.name ?? customer?.full_name ?? "",
+      location: customer?.location ?? customer?.address ?? "",
+      address: customer?.address ?? "",
+      phone: customer?.phone ?? "",
+      email: customer?.email ?? "",
+      tin: customer?.tin ?? "",
+      vrn: customer?.vrn ?? "",
+      branches: Array.isArray(customer?.branches) ? customer.branches : []
+    };
+  };
+
+  const normalizeCustomerBranch = (branch, index = 0) => {
+    return {
+      id: branch?.id ?? branch?.pk ?? null,
+      branch_name:
+        branch?.branch_name ||
+        branch?.name ||
+        branch?.title ||
+        (index === 0 ? "Main Branch" : `Branch ${index + 1}`),
+      location: branch?.location || "",
+      address: branch?.address || "",
+      phone: branch?.phone || "",
+      email: branch?.email || "",
+      tin: branch?.tin || "",
+      vrn: branch?.vrn || "",
+      is_primary: Boolean(branch?.is_primary || branch?.is_default)
+    };
+  };
+
+  const buildCustomerBranches = (customer) => {
+    const rawBranches = Array.isArray(customer?.branches)
+      ? customer.branches
+      : Array.isArray(customer?.customer_branches)
+      ? customer.customer_branches
+      : Array.isArray(customer?.branch_addresses)
+      ? customer.branch_addresses
+      : [];
+
+    const normalizedBranches = rawBranches.map(normalizeCustomerBranch);
+
+    if (normalizedBranches.length > 0) {
+      return normalizedBranches;
+    }
+
+    if (!customer) return [];
+
+    return [
+      {
+        id: null,
+        branch_name: "Main Branch",
+        location: customer.location || "",
+        address: customer.address || "",
+        phone: customer.phone || "",
+        email: customer.email || "",
+        tin: customer.tin || "",
+        vrn: customer.vrn || "",
+        is_primary: true
+      }
+    ];
+  };
+
+  const applySelectedCustomer = (customer) => {
+    const normalizedCustomer = normalizeCustomer(customer);
+
+    setSelectedCustomer(normalizedCustomer);
+    setCustomerSearch(`${normalizedCustomer.code} - ${normalizedCustomer.name}`);
+
+    const branches = buildCustomerBranches(normalizedCustomer);
+    setCustomerBranches(branches);
+
+    const primaryBranch =
+      branches.find((b) => b.is_primary) ||
+      branches[0] ||
+      null;
+
+    setSelectedCustomerBranch(primaryBranch);
+  };
+
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") handleClose(); };
+    const onKey = (e) => {
+      if (e.key === "Escape") handleClose();
+    };
+
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "auto";
     };
   }, []);
 
-  const filteredCustomers = customersDB.filter(c =>
-    `${c.code} ${c.name}`.toLowerCase().includes(customerSearch.toLowerCase())
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadCustomers() {
+      try {
+        const res = await API.get("/customers/");
+        const rows = unwrapList(res?.data).map(normalizeCustomer);
+
+        if (!mounted) return;
+
+        setCustomersAPI(rows);
+      } catch (err) {
+        console.error("Failed to load customers:", err?.response?.data || err.message);
+        setCustomersAPI([]);
+      }
+    }
+
+    loadCustomers();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const customerSource = customersAPI.length ? customersAPI : customersDB;
+
+  const filteredCustomers = customerSource.filter(c =>
+    `${c.code || c.accCode || ""} ${c.name || c.full_name || ""}`
+      .toLowerCase()
+      .includes(customerSearch.toLowerCase())
   );
 
   const addEmptyRow = () => {
@@ -146,6 +323,9 @@ export default function AddProformaModal({ onClose }) {
       acCode: referenceNo || selectedCustomer.code,
       invoice: proformaNumber,
       customer: `${selectedCustomer.code} - ${selectedCustomer.name}`,
+      customerBranch: selectedCustomerBranch,
+      customer_branch: selectedCustomerBranch,
+      customer_branch_id: selectedCustomerBranch?.id ?? null,
       amount: calculations.grandTotal,
       date,
       items,
@@ -160,6 +340,8 @@ export default function AddProformaModal({ onClose }) {
       state: {
         invoiceNumber: row.invoice,
         customer: selectedCustomer,
+        customerBranch: selectedCustomerBranch,
+        customer_branch: selectedCustomerBranch,
         items,
         discountAll,
         calculations,
@@ -188,8 +370,6 @@ export default function AddProformaModal({ onClose }) {
         </div>
 
         <div className="addSales-content">
-
-          {/* TOP ROW */}
           <div className="erp-row top-row">
             <div className="erp-field">
               <label>Customer *</label>
@@ -198,22 +378,66 @@ export default function AddProformaModal({ onClose }) {
                 onChange={(e) => {
                   setCustomerSearch(e.target.value);
                   setSelectedCustomer(null);
+                  setCustomerBranches([]);
+                  setSelectedCustomerBranch(null);
                 }}
               />
               {customerSearch && !selectedCustomer && (
                 <div className="erp-dropdown-menu">
                   {filteredCustomers.map(c => (
                     <div
-                      key={c.id}
+                      key={c.id || c.code}
                       className="erp-dropdown-item"
-                      onClick={() => {
-                        setSelectedCustomer(c);
-                        setCustomerSearch(`${c.code} - ${c.name}`);
-                      }}
+                      onClick={() => applySelectedCustomer(c)}
                     >
-                      {c.code} — {c.name}
+                      {c.code || c.accCode} — {c.name || c.full_name}
                     </div>
                   ))}
+                </div>
+              )}
+
+              {selectedCustomer && (
+                <div className="erp-selected">
+                  Selected: {selectedCustomer.code} — {selectedCustomer.name}
+                </div>
+              )}
+            </div>
+
+            <div className="erp-field">
+              <label>Customer Branch / Address</label>
+              <select
+                value={selectedCustomerBranch?.id ?? selectedCustomerBranch?.branch_name ?? ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  const found = customerBranches.find((branch) =>
+                    String(branch.id ?? branch.branch_name) === String(value)
+                  );
+
+                  setSelectedCustomerBranch(found || null);
+                }}
+                disabled={!selectedCustomer}
+              >
+                <option value="">
+                  {selectedCustomer ? "Select Branch" : "Select customer first"}
+                </option>
+
+                {customerBranches.map((branch, idx) => (
+                  <option
+                    key={branch.id ?? `${branch.branch_name}-${idx}`}
+                    value={branch.id ?? branch.branch_name}
+                  >
+                    {branch.branch_name}
+                    {branch.location ? ` - ${branch.location}` : ""}
+                    {branch.address ? ` (${branch.address})` : ""}
+                  </option>
+                ))}
+              </select>
+
+              {selectedCustomerBranch && (
+                <div className="erp-selected">
+                  Branch: {selectedCustomerBranch.branch_name}
+                  {selectedCustomerBranch.address ? ` — ${selectedCustomerBranch.address}` : ""}
                 </div>
               )}
             </div>
@@ -229,7 +453,6 @@ export default function AddProformaModal({ onClose }) {
             </div>
           </div>
 
-          {/* TABLE */}
           <div className="erp-table-wrapper">
             <table className="erp-table">
               <thead>
@@ -243,7 +466,6 @@ export default function AddProformaModal({ onClose }) {
                 </tr>
               </thead>
               <tbody>
-
                 {items.length === 0 && (
                   <tr>
                     <td colSpan={6} style={{ textAlign: "center", padding: 20 }}>
@@ -257,7 +479,6 @@ export default function AddProformaModal({ onClose }) {
 
                   return (
                     <tr key={idx}>
-                      {/* PRODUCT DROPDOWN */}
                       <td>
                         <select
                           value={item.code}
@@ -338,7 +559,6 @@ export default function AddProformaModal({ onClose }) {
                     </tr>
                   );
                 })}
-
               </tbody>
             </table>
           </div>
@@ -347,7 +567,6 @@ export default function AddProformaModal({ onClose }) {
             + Add Row
           </button>
 
-          {/* TOTALS */}
           <div className="erp-bottom">
             <div className="erp-left">
               <div className="erp-input-row">
@@ -373,9 +592,8 @@ export default function AddProformaModal({ onClose }) {
               Save & Preview
             </button>
           </div>
-
         </div>
       </div>
     </div>
   ); 
-} 
+}
