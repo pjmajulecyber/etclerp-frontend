@@ -148,9 +148,11 @@
 }
 /* COMPANY NAME: single line, no wrap */
 .company-name{
-  font-size:16px;
+  font-size:24px;
+  text-align: center;
   color:#153b8b;
-  font-weight:700;
+  font-weight:900;
+  margin-left: 5px;
   margin-top:14px;
   letter-spacing:0.3px;
   white-space: nowrap;       /* keep single line */
@@ -166,37 +168,50 @@
 /* right block: large DELIVERY NOTE with pale blue background */
 /* Use flexible sizing and clamp title to avoid overflow off the page */
 .dn-right{
-  flex: 1 1 56%;
-  min-width: 200px;
+  width: 56%;
+  min-width: 260px;
+  margin-left: 150px ;
+  margin-top: 8px;
+
   background: linear-gradient(180deg, var(--pale-blue), #e7f0f6);
-  border: 1px solid rgba(0,0,0,0.6);
-  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,.6);
+
+  padding: 10px 14px;
   box-sizing: border-box;
-  text-align: right;
   height: 120px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:flex-end;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;      /* center horizontally */
+  justify-content: center;  /* center vertically */
+
   overflow: hidden;
 }
 
-/* title will scale between 26px and 44px depending on available width */
 .dn-title{
-  font-size: clamp(26px, 4.6vw, 24px);
-  font-weight:700;
-  line-height: 1;
-  margin-bottom:6px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  color: var(--black);
+  width: 100%;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 8px;
+  color: #000;
 }
+
+
 .dn-contact{
+  width:100%;
+  text-align:center;
   font-size:11px;
-  line-height:1.1;
+  line-height:1.2;
 }
-.dn-contact .muted{ font-style:italic; font-size:10px; margin-top:6px; }
+
+.dn-contact .muted{
+  display:block;
+  text-align:center;
+  margin-top:6px;
+}
 
 /* meta row under header */
 .dn-meta{
