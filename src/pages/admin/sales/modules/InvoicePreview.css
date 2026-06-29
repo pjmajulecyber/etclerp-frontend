@@ -63,8 +63,9 @@
 
 /* TAX title: center and visually separated under company info */
 .tax-title {
-  background: #bad4f8; /* removed background to match centered look below info */
+  background: #1d4ed8; /* removed background to match centered look below info */
   font-size: 26px;
+  color: #fff;
   font-weight: 800;
   text-align: center;
   margin-top: 10px;   /* ensure it sits below company meta / info */
@@ -75,7 +76,7 @@
    width: 399px;
 }
 
-.incompany-name { font-size:18px; font-weight:700;  background: #bad4f8;width: 399px;margin-left: 99px; }
+.incompany-name { font-size:18px; font-weight:700;color: #fff;  background: #1d4ed8;width: 399px;margin-left: 99px; }
 .company-meta { font-size:12px; color:#111; margin-top:6px; }
 .inv-header-right { width:240px; display:flex; flex-direction:column; gap:8px; }
 .meta-box { border:1px solid #111; padding:6px 8px; font-size:13px; }
@@ -115,13 +116,14 @@
   padding:6px;           /* slightly tightened */
   flex:1;
   box-sizing:border-box;
-  background:#f8fafc;
+  background:#1d4ed8;
   min-height: 60px;     /* make boxes shorter/tighter */
 }
 .box-title {
-  background:#e2e8f0;
+  background:#1d4ed8;
   padding:6px 8px;
   font-weight:700;
+  color: #ffffff;
   margin-bottom:6px;
   border:1px solid #cbd5e1;
 }
@@ -491,42 +493,42 @@
 }
 
 /* ===== BANK DETAILS ===== */
-.bank-header{
-  margin-top:18px;
+.inbank-header{
+  margin-top:12px;
 }
 
-.make-payment{
-  font-size:9.5px;
+.inmake-payment{
+  font-size:12px;
   font-weight: 800;
   margin-bottom:4px;
 }
 
-.bank-title{
+.inbank-title{
   font-weight:700;
-  font-size:9.5px;
+  font-size:12px;
   letter-spacing:0.5px;
 }
 
-.bank-grid{
-  margin-top:14px;
+.inbank-grid{
+  margin-top:12px;
   display:grid;
   grid-template-columns: 220px 1fr 1fr 1fr;
-  gap:40px;
+  gap:55px;
 }
 
-.bank-labels div{
+.inbank-labels div{
   margin-bottom:6px;
-  font-size: 9.5px;
+  font-size: 12px;
 }
 
-.bank-col div{
+.inbank-col div{
   margin-bottom:6px;
 }
 
-.bank-red{
+.inbank-red{
   color:#b00000;
-  font-weight:500;
-  font-size: 9.5px;
+  font-weight:900;
+  font-size: 12px;
 }
 
 /* ===== FORCE FIX FOR TOTALS (override ALL global CSS) ===== */
