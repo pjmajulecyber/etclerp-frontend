@@ -153,7 +153,7 @@
   color:#153b8b;
   font-weight:900;
   margin-left: 5px;
-  margin-top:14px;
+  margin-top:14px; 
   letter-spacing:0.3px;
   white-space: nowrap;       /* keep single line */
   overflow: visible;
@@ -173,7 +173,7 @@
   margin-left: 150px ;
   margin-top: 8px;
 
-  background: linear-gradient(180deg, var(--pale-blue), #e7f0f6);
+  background:  #1d4ed8;
   border: 1px solid rgba(0,0,0,.6);
 
   padding: 10px 14px;
@@ -196,7 +196,7 @@
   font-weight: 700;
   line-height: 1.1;
   margin: 0 0 8px;
-  color: #000;
+  color: #f7f5f5;
 }
 
 
@@ -204,12 +204,14 @@
   width:100%;
   text-align:center;
   font-size:11px;
+  color: #fff;
   line-height:1.2;
 }
 
 .dn-contact .muted{
   display:block;
   text-align:center;
+  color: #fdfeff;
   margin-top:6px;
 }
 
@@ -245,12 +247,13 @@
 
 /* box header style */
 .box-header{
-  background: var(--header-blue);
+  background: #1d4ed8;
   border: 1px solid var(--black);
   padding: 6px 8px;
   font-weight:700;
   margin-bottom: 6px;
   font-size:13px;
+  color: #fff;
 }
 .box-row{
   display:flex;
@@ -306,20 +309,22 @@
 
 /* table header — pale blue header band with inner black separators */
 .dn-table thead tr:first-child th{
-  background: var(--header-blue);
+  background: #1d4ed8;
   border:2px solid var(--black);
   padding:10px;
   font-weight:700;
+  color: #fff;
   text-align:center;
 }
 .dn-table thead tr.subhead th{
-  background: var(--header-blue);
+  background: #1d4ed8;
   border-left:2px solid var(--black);
   border-right:2px solid var(--black);
   border-bottom:2px solid var(--black);
   padding:6px;
   text-align:center;
   font-weight:700;
+  color: #fff;
 }
 
 /* columns widths */
