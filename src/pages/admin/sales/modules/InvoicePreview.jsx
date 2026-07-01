@@ -462,15 +462,15 @@ console.log("SALE ID:", saleId);
             </div>
 
             {/* ===== BANK DETAILS HEADER ===== */}
-            <div className="bank-header">
-              <div className="make-payment">Make Payment</div>
-              <div className="bank-title">BANK DETAILS</div>
+            <div className="inbank-header">
+              <div className="inmake-payment">Make Payment</div>
+              <div className="inbank-title">BANK DETAILS</div>
             </div>
 
             {/* ===== BANK DETAILS GRID ===== */}
-            <div className="bank-grid">
+            <div className="inbank-grid">
               {/* Labels column */}
-              <div className="bank-labels">
+              <div className="inbank-labels">
                 <div>Bank Name:</div>
                 <div>Bank Branch Name:</div>
                 <div>Account Number:</div>
@@ -480,33 +480,33 @@ console.log("SALE ID:", saleId);
               </div>
 
               {/* CRDB */}
-              <div className="bank-col">
-                <div className="bank-red">{d.bankDetails?.crdb?.name ?? "CRDB BANK LIMITED"}</div>
-                <div className="bank-red">{d.bankDetails?.crdb?.branch ?? "UBUNGO BRANCH"}</div>
-                <div className="bank-red">{d.bankDetails?.crdb?.account ?? "1.50435E+11"}</div>
-                <div className="bank-red">{d.bankDetails?.crdb?.accountName ?? COMPANY.name}</div>
-                <div className="bank-red">{d.bankDetails?.crdb?.swift ?? "CORUTZTZ"}</div>
-                <div className="bank-red">{d.bankDetails?.crdb?.currency ?? "TZS"}</div>
+              <div className="inbank-col">
+                <div className="inbank-red">{d.bankDetails?.crdb?.name ?? "CRDB BANK LIMITED"}</div>
+                <div className="inbank-red">{d.bankDetails?.crdb?.branch ?? "UBUNGO BRANCH"}</div>
+                <div className="inbank-red">{d.bankDetails?.crdb?.account ?? "1504435234500"}</div>
+                <div className="inbank-red">{d.bankDetails?.crdb?.accountName ?? COMPANY.name}</div>
+                <div className="inbank-red">{d.bankDetails?.crdb?.swift ?? "CORUTZTZ"}</div>
+                <div className="inbank-red">{d.bankDetails?.crdb?.currency ?? "TZS"}</div>
               </div>
 
               {/* KCB */}
-              <div className="bank-col">
-                <div className="bank-red">{d.bankDetails?.kcb?.name ?? "KCB BANK LTD"}</div>
-                <div className="bank-red">{d.bankDetails?.kcb?.branch ?? "MBAGALA BRANCH"}</div>
-                <div className="bank-red">{d.bankDetails?.kcb?.account ?? "3390982256"}</div>
-                <div className="bank-red">{d.bankDetails?.kcb?.accountName ?? COMPANY.name}</div>
-                <div className="bank-red">{d.bankDetails?.kcb?.swift ?? "KCBLTZTZ"}</div>
-                <div className="bank-red">{d.bankDetails?.kcb?.currency ?? "TZS"}</div>
+              <div className="inbank-col">
+                <div className="inbank-red">{d.bankDetails?.kcb?.name ?? "KCB BANK LTD"}</div>
+                <div className="inbank-red">{d.bankDetails?.kcb?.branch ?? "MBAGALA BRANCH"}</div>
+                <div className="inbank-red">{d.bankDetails?.kcb?.account ?? "3390982256"}</div>
+                <div className="inbank-red">{d.bankDetails?.kcb?.accountName ?? COMPANY.name}</div>
+                <div className="inbank-red">{d.bankDetails?.kcb?.swift ?? "KCBLTZTZ"}</div>
+                <div className="inbank-red">{d.bankDetails?.kcb?.currency ?? "TZS"}</div>
               </div>
 
               {/* STANBIC */}
-              <div className="bank-col">
-                <div className="bank-red">{d.bankDetails?.stanbic?.name ?? "STANBIC BANK LIMITED"}</div>
-                <div className="bank-red">{d.bankDetails?.stanbic?.branch ?? "CENTRAL BRANCH"}</div>
-                <div className="bank-red">{d.bankDetails?.stanbic?.account ?? "9.12E+12"}</div>
-                <div className="bank-red">{d.bankDetails?.stanbic?.accountName ?? COMPANY.name}</div>
-                <div className="bank-red">{d.bankDetails?.stanbic?.swift ?? "CORUTZTZ"}</div>
-                <div className="bank-red">{d.bankDetails?.stanbic?.currency ?? "TZS"}</div>
+              <div className="inbank-col">
+                <div className="inbank-red">{d.bankDetails?.stanbic?.name ?? "STANBIC BANK LIMITED"}</div>
+                <div className="inbank-red">{d.bankDetails?.stanbic?.branch ?? "CENTRAL BRANCH"}</div>
+                <div className="inbank-red">{d.bankDetails?.stanbic?.account ?? "9120003168741"}</div>
+                <div className="inbank-red">{d.bankDetails?.stanbic?.accountName ?? COMPANY.name}</div>
+                <div className="inbank-red">{d.bankDetails?.stanbic?.swift ?? "CORUTZTZ"}</div>
+                <div className="inbank-red">{d.bankDetails?.stanbic?.currency ?? "TZS"}</div>
               </div>
             </div>
           </section>
