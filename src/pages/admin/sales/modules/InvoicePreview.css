@@ -167,19 +167,20 @@
 /* header styling (top row) */
 .inv-items-table thead th,
 .invoice-main-table thead th {
-  background:#e6eef8;
+  background:#1d4ed8;
   padding: 8px;
   font-weight:700;
+  color: #fff;
   text-align:center;
   border-bottom:4px solid #111;
 }
 
 /* header cell alignments */
-.inv-items-table thead th.col-qty   { text-align:left; }
-.inv-items-table thead th.col-desc  { text-align:left; }
-.inv-items-table thead th.col-unit  { text-align:left; }
-.inv-items-table thead th.col-amount{ text-align:left; }
-.inv-items-table thead th.col-cts   { text-align:left; }
+.inv-items-table thead th.col-qty   { text-align:left; color: #000; }
+.inv-items-table thead th.col-desc  { text-align:left; color: #000; }
+.inv-items-table thead th.col-unit  { text-align:left; color: #000; }
+.inv-items-table thead th.col-amount{ text-align:left; color: #000; }
+.inv-items-table thead th.col-cts   { text-align:left; color: #000; }
 
 /* body cells: make backgrounds transparent so overlay is visible */
 .inv-items-table tbody td,
