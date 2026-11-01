@@ -84,7 +84,7 @@ export default function Login() {
         token: data.access
       });
 
-      navigate("/admin/dashboard");
+      navigate("/apps/dashboard");
 
     } catch (err) {
       setError(err.message);
