@@ -135,13 +135,13 @@ console.log("SALE ID:", saleId);
   };
 
   const handleEdit = () => {
-    navigate("/admin/sales/modules/add", {
+    navigate("/apps/sales/modules/add", {
       state: { backgroundLocation: location, saleData: data },
     });
   };
 
   const handleDeliveryNote = () => {
-    navigate("/admin/sales/delivery-note", {
+    navigate("/apps/sales/delivery-note", {
       state: data,
     });
   };
