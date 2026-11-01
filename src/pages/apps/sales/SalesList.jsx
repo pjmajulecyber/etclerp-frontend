@@ -432,7 +432,7 @@ export default function SalesList() {
           <button
             className="salesList-primaryBtn"
             onClick={() =>
-              navigate("/admin/sales/modules/add", {
+              navigate("/apps/sales/modules/add", {
                 state: { backgroundLocation: location }
               })
             }
