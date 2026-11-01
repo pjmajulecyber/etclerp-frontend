@@ -728,7 +728,7 @@ export default function AddSalesModal({ onClose }) {
         backendResponse: res
       };
 
-      navigate("/admin/sales/invoice-preview", {
+      navigate("/apps/sales/invoice-preview", {
         state: saleDataForPreview,
         replace: true,
       });
@@ -799,7 +799,7 @@ export default function AddSalesModal({ onClose }) {
         return;
       }
 
-      navigate("/admin/sales/invoice-preview", {
+      navigate("/apps/sales/invoice-preview", {
         state: {
           id: freshSale.id,
           customerBranch: selectedCustomerBranch,
@@ -863,7 +863,7 @@ export default function AddSalesModal({ onClose }) {
         backendResponse: res
       };
 
-      navigate("/admin/sales/invoice-preview", {
+      navigate("/apps/sales/invoice-preview", {
         state: saleDataForPreview,
         replace: true,
       });
