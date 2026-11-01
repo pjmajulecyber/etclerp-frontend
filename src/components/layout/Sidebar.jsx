@@ -1,7 +1,4 @@
 
-
-
-
 import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
@@ -16,7 +13,7 @@ import {
   FiFileText,
   FiBarChart2,
   FiMail,
-  FiSettings,
+  FiSettings,  
   FiChevronDown
 } from "react-icons/fi";
 
@@ -67,7 +64,7 @@ export default function Sidebar() {
           <p className="menu-title">MAIN</p>
 
           <li>
-            <NavLink to="/admin/dashboard" className={linkClass}>
+            <NavLink to="/apps/dashboard" className={linkClass}>
               <FiHome /> Dashboard
             </NavLink>
           </li>
@@ -81,9 +78,9 @@ export default function Sidebar() {
             isOpen={openMenu === "sales"}
             toggle={() => toggleMenu("sales")}
           >  
-            <NavLink to="/admin/sales/list" className={linkClass}>Sales List</NavLink>
-            <NavLink to="/admin/sales/receive-payments" className={linkClass}>Receive Payment</NavLink>
-            <NavLink to="/admin/sales/proforma-invoices" className={linkClass}>Proforma Invoices</NavLink>
+            <NavLink to="/apps/sales/list" className={linkClass}>Sales List</NavLink>
+        
+            <NavLink to="/apps/sales/proforma-invoices" className={linkClass}>Proforma Invoices</NavLink>
           </SidebarDropdown>
 
           {/* PURCHASES */}
@@ -94,9 +91,9 @@ export default function Sidebar() {
             toggle={() => toggleMenu("purchases")}
           >
             {/* updated paths */}
-            <NavLink to="/admin/purchases" className={linkClass}>Purchase List</NavLink>
-            <NavLink to="/admin/purchases/supplier" className={linkClass}>Suppliers</NavLink>
-            <NavLink to="/admin/purchases/" className={linkClass}>Purchases Invoices</NavLink>
+            <NavLink to="/apps/purchases" className={linkClass}>Purchase List</NavLink>
+            <NavLink to="/apps/purchases/supplier" className={linkClass}>Suppliers</NavLink>
+            <NavLink to="/apps/purchases/" className={linkClass}>Purchases Invoices</NavLink>
           </SidebarDropdown>
 
           {/* CUSTOMERS */}
@@ -106,9 +103,9 @@ export default function Sidebar() {
             isOpen={openMenu === "customers"}
             toggle={() => toggleMenu("customers")}
           >
-            <NavLink to="/admin/customers/list" className={linkClass}>Customer List</NavLink>
-            <NavLink to="/admin/customers/customer-statement" className={linkClass}>Customer Statements</NavLink>
-            <NavLink to="/admin/customers/upload" className={linkClass}>Upload Customers</NavLink>
+            <NavLink to="/apps/customers/list" className={linkClass}>Customer List</NavLink>
+            <NavLink to="/apps/customers/customer-statement" className={linkClass}>Customer Statements</NavLink>
+           
           </SidebarDropdown>
 
           {/* INVENTORY */}
@@ -118,10 +115,10 @@ export default function Sidebar() {
             isOpen={openMenu === "inventory"}
             toggle={() => toggleMenu("inventory")}
           >
-            <NavLink to="/admin/inventory" className={linkClass}>Stock Management</NavLink>
-            <NavLink to="/admin/inventory/stock/track" className={linkClass}>Track Stock</NavLink>
-            <NavLink to="/admin/stock/depot" className={linkClass}>Stock Depot</NavLink>
-            <NavLink to="/admin/stock/qr" className={linkClass}>Create QR Codes</NavLink>
+            <NavLink to="/apps/inventory" className={linkClass}>Stock Management</NavLink>
+            <NavLink to="/apps/inventory/stock/track" className={linkClass}>Track Stock</NavLink>
+            <NavLink to="/apps/stock/depot" className={linkClass}>Stock Depot</NavLink>
+            <NavLink to="/apps/stock/qr" className={linkClass}>Create QR Codes</NavLink>
           </SidebarDropdown>
 
           {/* LOGISTIC */}
@@ -131,9 +128,9 @@ export default function Sidebar() {
             isOpen={openMenu === "Logistics"}
             toggle={() => toggleMenu("Logistics")}
           >
-            <NavLink to="/admin/logistics/list" className={linkClass}>Trucks Management</NavLink>
-            <NavLink to="/admin/logistics/drivers-list" className={linkClass}>Drivers</NavLink>
-            <NavLink to="/admin/logistics/live-truck" className={linkClass}>Live Tracker</NavLink>
+            <NavLink to="/apps/logistics/list" className={linkClass}>Trucks Management</NavLink>
+            <NavLink to="/apps/logistics/drivers-list" className={linkClass}>Drivers</NavLink>
+            <NavLink to="/apps/logistics/live-truck" className={linkClass}>Live Tracker</NavLink>
           </SidebarDropdown>
 
 
@@ -144,10 +141,10 @@ export default function Sidebar() {
             isOpen={openMenu === "expenses"}
             toggle={() => toggleMenu("expenses")}
           >
-            <NavLink to="/admin/expenses" className={linkClass}>Expense List</NavLink>
-            <NavLink to="/admin/expenses/categories" className={linkClass}>Create Category</NavLink>
-            <NavLink to="/admin/expenses/track" className={linkClass}>Track Expenses</NavLink>
-            <NavLink to="/admin/expenses/import" className={linkClass}>Import Expenses</NavLink>
+            <NavLink to="/apps/expenses" className={linkClass}>Expense List</NavLink>
+            <NavLink to="/apps/expenses/categories" className={linkClass}>Create Category</NavLink>
+            <NavLink to="/apps/expenses/track" className={linkClass}>Track Expenses</NavLink>
+           
           </SidebarDropdown>
 
           {/* HR */}
@@ -157,10 +154,10 @@ export default function Sidebar() {
             isOpen={openMenu === "hr"}
             toggle={() => toggleMenu("hr")}
           >
-            <NavLink to="/admin/payroll" className={linkClass}>Employees List</NavLink>
-            <NavLink to="/admin/employees/add" className={linkClass}>Add Employee</NavLink>
-            <NavLink to="/admin/payroll/list" className={linkClass}>Payrolls</NavLink>
-            <NavLink to="/admin/payroll/import" className={linkClass}>Import Payrolls</NavLink>
+            <NavLink to="/apps/payroll" className={linkClass}>Employees List</NavLink>
+            <NavLink to="/apps/payroll" className={linkClass}>Add Employee</NavLink>
+            <NavLink to="/apps/payroll" className={linkClass}>Payrolls</NavLink>
+            <NavLink to="/apps/payroll" className={linkClass}>Import Payrolls</NavLink>
           </SidebarDropdown>
 
           {/* ASSETS */}
@@ -171,11 +168,11 @@ export default function Sidebar() {
             toggle={() => toggleMenu("assets")}
           >
            
-            <NavLink to="/admin/assets" className={linkClass}>Asset List</NavLink>
-            <NavLink to="/admin/assets/register" className={linkClass}>Register Asset</NavLink>
-            <NavLink to="/admin/assets/track" className={linkClass}>Track Assets</NavLink>
-            <NavLink to="/admin/assets/import" className={linkClass}>Import Asset</NavLink>
-            <NavLink to="/admin/assets/qr" className={linkClass}>Create QR Code</NavLink>
+            <NavLink to="/apps/assets" className={linkClass}>Asset List</NavLink>
+            <NavLink to="/apps/assets/register" className={linkClass}>Register Asset</NavLink>
+            <NavLink to="/apps/assets/track" className={linkClass}>Track Assets</NavLink>
+            <NavLink to="/apps/assets/import" className={linkClass}>Import Asset</NavLink>
+            <NavLink to="/apps/assets/qr" className={linkClass}>Create QR Code</NavLink>
           </SidebarDropdown>
 
           {/* DOCUMENTS */}
@@ -185,10 +182,10 @@ export default function Sidebar() {
             isOpen={openMenu === "documents"}
             toggle={() => toggleMenu("documents")}
           >
-            <NavLink to="/admin/documents" className={linkClass}>Doc List</NavLink>
-            <NavLink to="/admin/docs/categories" className={linkClass}>Doc Categories</NavLink>
-            <NavLink to="/admin/docs/upload" className={linkClass}>Upload Doc</NavLink>
-            <NavLink to="/admin/docs/track" className={linkClass}>Track Doc</NavLink>
+            <NavLink to="/apps/documents" className={linkClass}>Doc List</NavLink>
+            <NavLink to="/apps/docs/categories" className={linkClass}>Doc Categories</NavLink>
+            <NavLink to="/apps/docs/upload" className={linkClass}>Upload Doc</NavLink>
+            <NavLink to="/apps/docs/track" className={linkClass}>Track Doc</NavLink>
           </SidebarDropdown>
 
           {/* REPORTS */}
@@ -198,13 +195,13 @@ export default function Sidebar() {
             isOpen={openMenu === "reports"}
             toggle={() => toggleMenu("reports")}
           >
-            <NavLink to="/admin/reports/sales-report" className={linkClass}>Sales Reports</NavLink>
-            <NavLink to="/admin/reports/payment-report" className={linkClass}>Payment Reports</NavLink>
-            <NavLink to="/admin/reports/stock-report" className={linkClass}>Stock Reports</NavLink>
-            <NavLink to="/admin/reports/expenses-report" className={linkClass}>Expense Reports</NavLink>
-            <NavLink to="/admin/reports/assets-report" className={linkClass}>Asset Reports</NavLink>
-            <NavLink to="/admin/reports/documents" className={linkClass}>Document Reports</NavLink>
-            <NavLink to="/admin/reports/tax" className={linkClass}>Tax / VAT Reports</NavLink>
+            <NavLink to="/apps/reports/sales-report" className={linkClass}>Sales Reports</NavLink>
+            <NavLink to="/apps/reports/payment-report" className={linkClass}>Payment Reports</NavLink>
+            <NavLink to="/apps/reports/stock-report" className={linkClass}>Stock Reports</NavLink>
+            <NavLink to="/apps/reports/expenses-report" className={linkClass}>Expense Reports</NavLink>
+            <NavLink to="/apps/reports/assets-report" className={linkClass}>Asset Reports</NavLink>
+            <NavLink to="/apps/reports/documents" className={linkClass}>Document Reports</NavLink>
+            <NavLink to="/apps/reports/tax" className={linkClass}>Tax / VAT Reports</NavLink>
           </SidebarDropdown>
 
           {/* USERS */}
@@ -214,8 +211,8 @@ export default function Sidebar() {
             isOpen={openMenu === "users"}
             toggle={() => toggleMenu("users")}
           >
-            <NavLink to="/admin/users/list" className={linkClass}>New User</NavLink>
-            <NavLink to="/admin/users/roles" className={linkClass}>User Roles</NavLink>
+            <NavLink to="/apps/users/list" className={linkClass}>New User</NavLink>
+            <NavLink to="/apps/users/roles" className={linkClass}>User Roles</NavLink>
           </SidebarDropdown>
 
           {/* EMAIL */}
@@ -225,7 +222,7 @@ export default function Sidebar() {
             isOpen={openMenu === "email"}
             toggle={() => toggleMenu("email")}
           >
-            <NavLink to="/admin/payroll/email-access" className={linkClass}>Access Email</NavLink>
+            <NavLink to="/apps/payroll/email-access" className={linkClass}>Access Email</NavLink>
           </SidebarDropdown>
 
         </ul>
@@ -239,11 +236,12 @@ export default function Sidebar() {
           isOpen={openMenu === "settings"}
           toggle={() => toggleMenu("settings")}
         >
-          <NavLink to="/admin/settings/company-settings" className={linkClass}>Company Profile</NavLink>
-          <NavLink to="/admin/settings/tax-settings" className={linkClass}>Tax List</NavLink>
-          <NavLink to="/admin/settings/account-code" className={linkClass}>Manage Account Codes</NavLink>
-          <NavLink to="/admin/settings/payment-setting" className={linkClass}>Payment Types</NavLink>
-          <NavLink to="/admin/settings/database-backup" className={linkClass}>Database Backup</NavLink>
+          <NavLink to="/apps/settings/company-settings" className={linkClass}>Company Profile</NavLink>
+          <NavLink to="/apps/settings/tax-settings" className={linkClass}>Tax List</NavLink>
+          <NavLink to="/apps/settings/account-code" className={linkClass}>Manage Account Codes</NavLink>
+          <NavLink to="/apps/settings/payment-setting" className={linkClass}>Payment Types</NavLink>
+          <NavLink to="/apps 
+           /settings/database-backup" className={linkClass}>Database Backup</NavLink>
         </SidebarDropdown>
       </div>
 

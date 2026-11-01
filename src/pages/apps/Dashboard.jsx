@@ -1,5 +1,9 @@
+
+
+
 import "./Dashboard.css";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiArrowUp,
   FiArrowDown,
@@ -72,6 +76,8 @@ const dashboardService = {
 ================================ */
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   const [year, setYear] = useState("2026");
   const [period, setPeriod] = useState("Year");
 
@@ -366,7 +372,12 @@ export default function Dashboard() {
           <div className="card">
             <div className="card-header">
               <h3>Stock Status</h3>
-              <button className="action-btn">Track</button>
+              <button
+                className="action-btn"
+                onClick={() => navigate("/apps/inventory")}
+              >
+                Track
+              </button>
             </div>
             <div className="table-scroll">
               <div className="table-responsive">
@@ -418,7 +429,12 @@ export default function Dashboard() {
                         <td>{exp.name}</td>
                         <td>{exp.amount}</td>
                         <td className="action-cell">
-                          <button className="view-btn small-btn">View</button>
+                          <button
+                            className="view-btn small-btn"
+                            onClick={() => navigate("/apps/expenses")}
+                          >
+                            View
+                          </button>
                           <button className="approve small-btn">Approve</button>
                           <button className="decline small-btn">Decline</button>
                         </td>
@@ -435,7 +451,11 @@ export default function Dashboard() {
           <div className="card">
             <div className="card-header">
               <h3>Waste Oil Stock</h3>
-              <button className="action-btn">Track Stock</button>
+              <button className="action-btn" onClick={() => navigate("/apps/inventory")}
+              >Track Stock
+              
+              
+              </button>
             </div>
             <div className="table-scroll">
               <div className="table-responsive">
@@ -485,7 +505,12 @@ export default function Dashboard() {
                         <td>{c.name}</td>
                         <td>{c.outstanding}</td>
                         <td>
-                          <button className="view-btn small-btn">View</button>
+                          <button
+                            className="view-btn small-btn"
+                            onClick={() => navigate("/apps/customers/list")}
+                          >
+                            View
+                          </button>
                         </td>
                       </tr>
                     ))}

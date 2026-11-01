@@ -2,75 +2,75 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import { AuthProvider } from "./pages/auth/AuthProvider";
 
 import Login from "./pages/auth/Login";
-import Dashboard from "./pages/admin/Dashboard";
+import Dashboard from "./pages/apps/Dashboard";
 import PackageExpire from "./pages/system/PackageExpire";
 
 /* --- Sales --- */
-import SalesList from "./pages/admin/sales/SalesList";
-import Invoice from "./pages/admin/sales/modules/Invoice";
-import Quatation from "./pages/admin/sales/modules/Quatation";
-import Overdue from "./pages/admin/sales/modules/Overdue";
-import AddSales from "./pages/admin/sales/modules/AddSales";
-import AddProforma from "./pages/admin/sales/modules/AddProforma";
-import InvoicePreview from "./pages/admin/sales/modules/InvoicePreview";
-import ProformPreview from "./pages/admin/sales/modules/ProformPreview";
-import DeliveryNote from "./pages/admin/sales/modules/DeliveryNote";
-import ReceivePayments from "./pages/admin/sales/modules/ReceivePayments";
-import ProformaInvoices from "./pages/admin/sales/modules/ProformaInvoices";
+import SalesList from "./pages/apps/sales/SalesList";
+import Invoice from "./pages/apps/sales/modules/Invoice";
+import Quatation from "./pages/apps/sales/modules/Quatation";
+import Overdue from "./pages/apps/sales/modules/Overdue";
+import AddSales from "./pages/apps/sales/modules/AddSales";
+import AddProforma from "./pages/apps/sales/modules/AddProforma";
+import InvoicePreview from "./pages/apps/sales/modules/InvoicePreview";
+import ProformPreview from "./pages/apps/sales/modules/ProformPreview";
+import DeliveryNote from "./pages/apps/sales/modules/DeliveryNote";
+import ReceivePayments from "./pages/apps/sales/modules/ReceivePayments";
+import ProformaInvoices from "./pages/apps/sales/modules/ProformaInvoices";
 
 /* --- Purchases --- */
-import PurchasesList from "./pages/admin/purchases/PurchasesList";
-import AddPurchases from "./pages/admin/purchases/Modules/AddPurchases";
-import PurchasesInvoicePreview from "./pages/admin/purchases/Modules/PurchasesInvoicePreview";
-import Supplier from "./pages/admin/purchases/Modules/supplier";
+import PurchasesList from "./pages/apps/purchases/PurchasesList";
+import AddPurchases from "./pages/apps/purchases/Modules/AddPurchases";
+import PurchasesInvoicePreview from "./pages/apps/purchases/Modules/PurchasesInvoicePreview";
+import Supplier from "./pages/apps/purchases/Modules/supplier";
 
 /* --- Customers --- */
-import CustomerList from "./pages/admin/customers/CustomerList";
-import CustomerStatement from "./pages/admin/customers/CustomerStatement";
-import CustomerAccount from "./pages/admin/customers/CustomerAc";
-import StatementPreview from "./pages/admin/customers/StatementPreview";
+import CustomerList from "./pages/apps/customers/CustomerList";
+import CustomerStatement from "./pages/apps/customers/CustomerStatement";
+import CustomerAccount from "./pages/apps/customers/CustomerAc";
+import StatementPreview from "./pages/apps/customers/StatementPreview";
 
 /* --- Inventory --- */
-import ProductList from "./pages/admin/inventory/ProductList";
-import TrackStock from "./pages/admin/inventory/Stock/TrackStock";
+import ProductList from "./pages/apps/inventory/ProductList";
+import TrackStock from "./pages/apps/inventory/Stock/TrackStock";
 
 /* --- Logistics --- */
-import TruckList from "./pages/admin/logistics/TruckList";
-import DriversList from "./pages/admin/logistics/DriversList";
-import LiveTruck from "./pages/admin/logistics/LiveTruck";
+import TruckList from "./pages/apps/logistics/TruckList";
+import DriversList from "./pages/apps/logistics/DriversList";
+import LiveTruck from "./pages/apps/logistics/LiveTruck";
 
 /* --- Expenses --- */
-import ExpensesList from "./pages/admin/expenses/ExpensesList";
+import ExpensesList from "./pages/apps/expenses/ExpensesList";
 
 /* --- HR --- */
-import HRPayroll from "./pages/admin/payroll/HRPayroll";
-import EmailAccess  from "./pages/admin/payroll/EmailAccess";
+import HRPayroll from "./pages/apps/payroll/HRPayroll";
+import EmailAccess  from "./pages/apps/payroll/EmailAccess";
 
 
 /* --- Assets --- */
-import AssetsManagement from "./pages/admin/assets/AssetsManagement";
+import AssetsManagement from "./pages/apps/assets/AssetsManagement";
 
 /* --- Docs --- */
-import DocumentManagement from "./pages/admin/documents/DocumentManagement";
+import DocumentManagement from "./pages/apps/documents/DocumentManagement";
 
 /* --- Settings --- */
-import AccountCode from "./pages/admin/settings/AccountCode";
-import CompanySettings from "./pages/admin/settings/CompanySettings";
-import TaxSettings from "./pages/admin/settings/TaxSettings"; 
-import PaymentSetting from "./pages/admin/settings/PaymentSetting"; 
-import DatabaseBackup from "./pages/admin/settings/DatabaseBackup";
+import AccountCode from "./pages/apps/settings/AccountCode";
+import CompanySettings from "./pages/apps/settings/CompanySettings";
+import TaxSettings from "./pages/apps/settings/TaxSettings"; 
+import PaymentSetting from "./pages/apps/settings/PaymentSetting"; 
+import DatabaseBackup from "./pages/apps/settings/DatabaseBackup";
 
 
 /* --- Reports --- */
-import SalesReport from "./pages/admin/reports/SalesReport";
-import PaymentReport from "./pages/admin/reports/PaymentReport";
-import StockReport from "./pages/admin/reports/StockReport";
-import ExpensesReport from "./pages/admin/reports/ExpensesReport";
-import AssetsReport from "./pages/admin/reports/AssetsReport";
+import SalesReport from "./pages/apps/reports/SalesReport";
+import PaymentReport from "./pages/apps/reports/PaymentReport";
+import StockReport from "./pages/apps/reports/StockReport";
+import ExpensesReport from "./pages/apps/reports/ExpensesReport";
+import AssetsReport from "./pages/apps/reports/AssetsReport";
 
 /* --- users --- */
-import UsersList from "./pages/admin/users/UsersList";
-import UserRoles from "./pages/admin/users/UserRoles";
+import UsersList from "./pages/apps/users/UsersList";
+import UserRoles from "./pages/apps/users/UserRoles";
 
 import AdminLayout from "./layouts/AdminLayout";
 
@@ -90,7 +90,7 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
 
         {/* ================= ADMIN AREA ================= */}
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/apps" element={<AdminLayout />}>
 
           {/* redirect /admin → dashboard */}
           <Route index element={<Navigate to="dashboard" replace />} />
