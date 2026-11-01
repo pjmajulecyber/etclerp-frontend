@@ -416,7 +416,7 @@ export default function SalesList() {
   );
 
   const goToInvoicePreview = (row) => {
-    navigate("/admin/sales/invoice-preview", {
+    navigate("/apps/sales/invoice-preview", {
       state: { id: row.id }
     });
   };
@@ -502,7 +502,7 @@ export default function SalesList() {
         </NavLink>
 
         <NavLink
-          to="/admin/sales/invoice"
+          to="/apps/sales/invoice"
           className={({ isActive }) =>
             isActive ? "salesList-tab active" : "salesList-tab"
           }
@@ -511,7 +511,7 @@ export default function SalesList() {
         </NavLink>
 
         <NavLink
-          to="/admin/sales/quotation"
+          to="/apps/sales/quotation"
           className={({ isActive }) =>
             isActive ? "salesList-tab active" : "salesList-tab"
           }
@@ -520,7 +520,7 @@ export default function SalesList() {
         </NavLink>
 
         <NavLink
-          to="/admin/sales/overdue"
+          to="/apps/sales/overdue"
           className={({ isActive }) =>
             isActive ? "salesList-tab active" : "salesList-tab"
           }
