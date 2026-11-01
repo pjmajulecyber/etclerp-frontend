@@ -906,7 +906,7 @@ export default function AddSalesModal({ onClose }) {
       }))
     };
 
-    navigate("/admin/sales/invoice-preview", {
+    navigate("/apps/sales/invoice-preview", {
       state: saleData
     });
 
