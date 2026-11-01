@@ -171,9 +171,9 @@ function AppRoutes() {
       {/* ================= MODAL ROUTES ================= */}
       {backgroundLocation && (
         <Routes>
-          <Route path="/admin/sales/modules/add" element={<AddSales onClose={() => window.history.back()} />} />
-          <Route path="/admin/sales/modules/add-proforma" element={<AddProforma onClose={() => window.history.back()} />} />
-          <Route path="/admin/purchases/modules/add" element={<AddPurchases onClose={() => window.history.back()} />} />
+          <Route path="/apps/sales/modules/add" element={<AddSales onClose={() => window.history.back()} />} />
+          <Route path="/apps/sales/modules/add-proforma" element={<AddProforma onClose={() => window.history.back()} />} />
+          <Route path="/apps/purchases/modules/add" element={<AddPurchases onClose={() => window.history.back()} />} />
         </Routes>
       )}
     </>
