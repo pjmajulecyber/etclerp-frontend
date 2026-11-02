@@ -219,7 +219,7 @@ export default function CustomerList() {
       return;
     }
 
-    navigate(`/admin/customers/account/${id}`);
+    navigate(`/apps/customers/account/${id}`);
   };
 
   const onRowsChange = (val) => {

@@ -258,7 +258,7 @@ console.log("SALE ID:", saleId);
               onClick={() => {
                 console.log("DELIVERY CLICK ID:", data?.id);
 
-                navigate("/admin/sales/delivery-note", {
+                navigate("/apps/sales/delivery-note", {
                   state: { id: data?.id }
                 });
               }}
