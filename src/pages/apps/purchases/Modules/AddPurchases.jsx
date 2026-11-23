@@ -182,7 +182,7 @@ export default function AddPurchaseOrder({ onClose }) {
 
   const handleClose = () => {
     if (onClose) onClose();
-    else navigate("/admin/purchases");
+    else navigate("/apps/purchases");
   };
 
   const filteredSuppliers = suppliersDB.filter((s) =>
@@ -431,14 +431,14 @@ export default function AddPurchaseOrder({ onClose }) {
       };
 
       if (saved && (saved.id || saved.pk)) {
-        navigate("/admin/purchases/invoice-preview", {
+        navigate("/apps/purchases/invoice-preview", {
           state: {
             id: saved.id ?? saved.pk,
             saleData: saleDataForPreview
           }
         });
       } else {
-        navigate("/admin/purchases/invoice-preview", {
+        navigate("/apps/purchases/invoice-preview", {
           state: saleDataForPreview
         });
       }
