@@ -158,7 +158,7 @@ export default function PurchasesList() {
       const res = await API.get(`purchases/${row.id}/purchase_order/`);
       const backendData = res?.data ?? null;
 
-      navigate("/admin/purchases/invoice-preview", {
+      navigate("/apps/purchases/invoice-preview", {
         state: {
           id: row.id,
           saleData: {
@@ -191,7 +191,7 @@ export default function PurchasesList() {
       });
     } catch (err) {
       console.error("Failed to load purchase order preview:", err);
-      navigate("/admin/purchases/invoice-preview", {
+      navigate("/apps/purchases/invoice-preview", {
         state: {
           id: row.id,
           saleData: row
@@ -294,7 +294,7 @@ export default function PurchasesList() {
           <button
             className="salesList-primaryBtn"
             onClick={() =>
-              navigate("/admin/purchases/modules/add", {
+              navigate("/apps/purchases/modules/add", {
                 state: { backgroundLocation: location }
               })
             }
@@ -336,28 +336,28 @@ export default function PurchasesList() {
 
       <div className="salesList-tabs">
         <NavLink
-          to="/admin/purchases/list"
+          to="/apps/purchases/list"
           className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
         >
           Purchase Order
         </NavLink>
 
         <NavLink
-          to="/admin/purchases/invoice"
+          to="/apps/purchases/invoice"
           className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
         >
           Purchase Invoice
         </NavLink>
 
         <NavLink
-          to="/admin/purchases/credit"
+          to="/apps/purchases/credit"
           className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
         >
           Credit Purchases
         </NavLink>
 
         <NavLink
-          to="/admin/purchases/overdue"
+          to="/apps/purchases/overdue"
           className={({ isActive }) => (isActive ? "salesList-tab active" : "salesList-tab")}
         >
           Overdue
